@@ -1,12 +1,15 @@
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
+import { AppDataSource } from './config/database';
 
 const app = express();
 
+// Configuração dos middlewares
 app.use(cors());
 app.use(express.json());
 
+// Rota para verificar o funcionamento da API
 app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -16,6 +19,21 @@ app.get('/health', (_req, res) => {
 
 const PORT = 3000;
 
-app.listen(PORT, () => {
-  console.log(`PetzIn API rodando na porta ${PORT}`);
-});
+// Inicializa a conexão com o PostgreSQL
+async function iniciarServidor() {
+  try {
+    await AppDataSource.initialize();
+
+    console.log('PostgreSQL conectado com sucesso!');
+
+    // Inicia o servidor somente após conectar ao banco
+    app.listen(PORT, () => {
+      console.log(`PetzIn API rodando na porta ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Erro ao conectar ao PostgreSQL:', error);
+    process.exit(1);
+  }
+}
+
+iniciarServidor();
