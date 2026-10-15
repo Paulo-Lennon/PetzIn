@@ -2,12 +2,15 @@ import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
 import { AppDataSource } from './config/database';
+import usuarioRoutes from './routes/usuarioRoutes';
 
 const app = express();
 
 // Configuração dos middlewares
 app.use(cors());
 app.use(express.json());
+// Registra as rotas de usuários
+app.use(usuarioRoutes);
 
 // Rota para verificar o funcionamento da API
 app.get('/health', (_req, res) => {

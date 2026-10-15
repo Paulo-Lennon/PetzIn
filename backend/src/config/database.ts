@@ -1,11 +1,12 @@
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import path from 'node:path';
+import { DataSource } from 'typeorm';
+import { Usuario } from '../entities/Usuario';
 
 dotenv.config({
   path: path.resolve(process.cwd(), '../.env'),
 });
-import { DataSource } from 'typeorm';
 
 // Configura a conexão com o PostgreSQL
 export const AppDataSource = new DataSource({
@@ -25,7 +26,7 @@ export const AppDataSource = new DataSource({
 
   logging: false,
 
-  entities: [],
+  entities: [Usuario],
 
-  migrations: [],
+  migrations: ['src/migrations/*.ts'],
 });
