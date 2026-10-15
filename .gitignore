@@ -1,0 +1,29 @@
+# Dependências Node.js e Angular
+node_modules/
+
+# Arquivos de compilação
+dist/
+build/
+.angular/
+coverage/
+
+# Variáveis de ambiente e credenciais
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Arquivos temporários
+*.tmp
+*.cache
+
+# Configurações locais do editor
+.vscode/
+.idea/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
