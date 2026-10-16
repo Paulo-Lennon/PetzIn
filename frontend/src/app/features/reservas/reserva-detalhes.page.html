@@ -1,0 +1,116 @@
+<section class="page details-page">
+  <header class="page-header">
+    <div>
+      <a class="breadcrumb" routerLink="/reservas">← Reservas</a>
+      <h1>Detalhes da reserva</h1>
+      <p>Acompanhe a hospedagem e o pagamento.</p>
+    </div>
+    @if (reserva(); as item) {
+      @if (item.status === 'AGENDADA') {
+        <a class="button button-secondary" [routerLink]="['/reservas', item.id, 'editar']">Editar reserva</a>
+      }
+    }
+  </header>
+
+  @if (mensagem()) {
+    <div class="feedback" [class.error]="mensagemDeErro()" role="status">{{ mensagem() }}</div>
+  }
+
+  @if (carregando()) {
+    <section class="surface empty-state">Carregando reserva...</section>
+  } @else if (reserva(); as item) {
+    <section class="surface hero-card">
+      <div class="pet-summary">
+        @if (item.pet?.fotoUrl) {
+          <img [src]="item.pet?.fotoUrl" [alt]="'Foto de ' + item.pet?.nome" />
+        } @else {
+          <span class="pet-avatar" aria-hidden="true">🐾</span>
+        }
+        <div>
+          <small>Hóspede</small>
+          <h2>{{ item.pet?.nome }}</h2>
+          <p>{{ item.pet?.especie }} · {{ item.pet?.raca || 'Raça não informada' }}</p>
+        </div>
+      </div>
+      <div class="hero-statuses">
+        <span [class]="'status status-' + item.status.toLowerCase()">{{ rotuloStatus(item.status) }}</span>
+        <span [class]="'payment payment-' + item.statusPagamento.toLowerCase()">{{ rotuloPagamento(item.statusPagamento) }}</span>
+      </div>
+    </section>
+
+    <div class="details-grid">
+      <section class="surface info-card">
+        <div class="card-heading"><h2>Hospedagem</h2><span>▣</span></div>
+        <dl>
+          <div><dt>Entrada</dt><dd>{{ item.dataEntrada | date: 'dd/MM/yyyy, HH:mm' }}</dd></div>
+          <div><dt>Saída</dt><dd>{{ item.dataSaida | date: 'dd/MM/yyyy, HH:mm' }}</dd></div>
+          <div><dt>Acomodação</dt><dd>Canil {{ item.numeroCanil }}</dd></div>
+          <div><dt>Modalidade</dt><dd>{{ item.modalidade === 'DIARIA' ? 'Diária + horas excedentes' : 'Por hora' }}</dd></div>
+        </dl>
+        @if (item.observacoes) {
+          <div class="notes"><strong>Observações</strong><p>{{ item.observacoes }}</p></div>
+        }
+      </section>
+
+      <section class="surface info-card">
+        <div class="card-heading"><h2>Tutor responsável</h2><span>♟</span></div>
+        <dl>
+          <div><dt>Nome</dt><dd>{{ item.pet?.tutor?.nome }}</dd></div>
+          <div><dt>Telefone</dt><dd>{{ item.pet?.tutor?.telefone }}</dd></div>
+          <div><dt>E-mail</dt><dd>{{ item.pet?.tutor?.email || 'Não informado' }}</dd></div>
+        </dl>
+      </section>
+    </div>
+
+    <section class="surface financial-card">
+      <div class="card-heading"><h2>Financeiro</h2><span>R$</span></div>
+      <div class="money-grid">
+        <div><small>Valor total</small><strong>{{ item.valorTotal | currency: 'BRL' }}</strong></div>
+        <div><small>Valor recebido</small><strong>{{ item.valorPago | currency: 'BRL' }}</strong></div>
+        <div><small>Saldo pendente</small><strong class="wine">{{ saldo(item) | currency: 'BRL' }}</strong></div>
+      </div>
+      <small class="tariff-note">Tarifas históricas: {{ item.tarifaDiaria | currency: 'BRL' }}/diária e {{ item.tarifaHora | currency: 'BRL' }}/hora.</small>
+
+      @if (item.status !== 'CANCELADA') {
+        <form class="payment-form" [formGroup]="pagamentoForm" (ngSubmit)="registrarPagamento()">
+          <div class="field">
+            <label for="valorPago">Total acumulado já pago</label>
+            <input id="valorPago" type="number" min="0" step="0.01" [max]="item.valorTotal" formControlName="valorPago" />
+            <small>Informe o total recebido até agora, não somente a última parcela.</small>
+          </div>
+          <button class="button button-primary" type="submit" [disabled]="processando() !== null">
+            {{ processando() === 'pagamento' ? 'Salvando...' : 'Atualizar pagamento' }}
+          </button>
+        </form>
+      }
+    </section>
+
+    @if (item.status === 'AGENDADA' || item.status === 'EM_ANDAMENTO') {
+      <section class="surface actions-card">
+        <div><h2>Atualizar hospedagem</h2><p>As mudanças de status seguem a ordem operacional do hotel.</p></div>
+        <div class="action-buttons">
+          @if (item.status === 'AGENDADA') {
+            <button class="button button-primary" type="button" (click)="alterarStatus('EM_ANDAMENTO')" [disabled]="processando() !== null">Iniciar hospedagem</button>
+          } @else {
+            <button class="button button-primary" type="button" (click)="alterarStatus('CONCLUIDA')" [disabled]="processando() !== null">Concluir hospedagem</button>
+          }
+          <button class="button button-outline-danger" type="button" (click)="confirmarCancelamento.set(true)" [disabled]="processando() !== null || item.valorPago > 0" [title]="item.valorPago > 0 ? 'Zere o pagamento antes de cancelar' : 'Cancelar reserva'">Cancelar reserva</button>
+        </div>
+      </section>
+    }
+
+    @if (confirmarCancelamento()) {
+      <div class="modal-backdrop" (click)="confirmarCancelamento.set(false)">
+        <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="cancelar-reserva" (click)="$event.stopPropagation()">
+          <span class="dialog-icon">!</span>
+          <h2 id="cancelar-reserva">Cancelar esta reserva?</h2>
+          <p>A reserva será mantida no histórico com o status “Cancelada”.</p>
+          <div class="dialog-actions">
+            <button class="button button-secondary" type="button" (click)="confirmarCancelamento.set(false)">Voltar</button>
+            <button class="button button-danger" type="button" (click)="cancelarReserva()" [disabled]="processando() !== null">{{ processando() === 'cancelamento' ? 'Cancelando...' : 'Sim, cancelar' }}</button>
+          </div>
+        </section>
+      </div>
+    }
+  }
+</section>

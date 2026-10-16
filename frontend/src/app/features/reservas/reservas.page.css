@@ -1,0 +1,31 @@
+.new-reservation {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.reservations-panel { overflow: hidden; }
+.status-filters { display: flex; gap: 1.25rem; overflow-x: auto; padding: 0 1rem; border-bottom: 1px solid var(--petzin-border); }
+.status-filters button { flex: 0 0 auto; border: 0; border-bottom: 2px solid transparent; padding: 1rem .15rem .8rem; color: var(--petzin-muted); background: transparent; font-size: .78rem; font-weight: 700; cursor: pointer; }
+.status-filters button.active { border-bottom-color: var(--petzin-wine-700); color: var(--petzin-wine-700); }
+.actions-heading { width: 100px; text-align: center !important; }
+.row-actions { display: flex; justify-content: center; gap: .35rem; }
+.icon-button { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid var(--petzin-border); border-radius: 7px; color: var(--petzin-wine-700); background: white; font-weight: 800; text-decoration: none; }
+.icon-button:hover { background: #f8f1ed; }
+
+.status {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.status-agendada { color: #a26400; background: #fff0bd; }
+.status-em_andamento { color: #167033; background: #dff5e5; }
+.status-concluida { color: #4e5965; background: #e9edf1; }
+.status-cancelada { color: #a92330; background: #ffe4e7; }
+.payment { display: inline-block; border-radius: 999px; padding: .35rem .55rem; font-size: .7rem; font-weight: 800; }
+.payment-pendente { color: #9a5b00; background: #fff3ce; }
+.payment-parcial { color: #1c64b7; background: #e0efff; }
+.payment-pago { color: #167033; background: #dff5e5; }

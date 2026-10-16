@@ -1,0 +1,110 @@
+<section class="page reservation-form-page">
+  <header class="page-header">
+    <div>
+      <a class="breadcrumb" routerLink="/reservas">← Reservas</a>
+      <h1>{{ editando ? 'Editar reserva' : 'Nova reserva' }}</h1>
+      <p>{{ editando ? 'Atualize o período e os dados da hospedagem.' : 'Selecione o pet, o período e a acomodação.' }}</p>
+    </div>
+  </header>
+
+  @if (carregando()) {
+    <section class="surface form-loading">Carregando reserva...</section>
+  } @else {
+  <form class="surface reservation-form" [formGroup]="formulario" (ngSubmit)="salvar()">
+    <div class="steps" aria-label="Etapas da reserva">
+      <span class="active"><b>1</b> Pet</span>
+      <span class="active"><b>2</b> Período</span>
+      <span class="active"><b>3</b> Acomodação</span>
+      <span><b>4</b> Confirmação</span>
+    </div>
+
+    <div class="form-section">
+      <h2>Dados da hospedagem</h2>
+      <div class="form-grid">
+        <div class="field full">
+          <label for="petId">Pet *</label>
+          <select id="petId" formControlName="petId">
+            <option value="">Selecione um pet</option>
+            @for (pet of pets(); track pet.id) {
+              <option [value]="pet.id">{{ pet.nome }} · {{ pet.tutor?.nome }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="dataEntrada">Entrada *</label>
+          <input id="dataEntrada" type="datetime-local" [min]="dataMinima" formControlName="dataEntrada" (change)="validarDataEntrada()" />
+        </div>
+
+        <div class="field">
+          <label for="dataSaida">Saída *</label>
+          <input id="dataSaida" type="datetime-local" formControlName="dataSaida" />
+        </div>
+
+        <div class="field">
+          <label for="numeroCanil">Número do canil *</label>
+          <input id="numeroCanil" type="number" min="1" formControlName="numeroCanil" />
+        </div>
+
+        <div class="field">
+          <label for="modalidade">Modalidade *</label>
+          <select id="modalidade" formControlName="modalidade">
+            <option value="DIARIA">Diária · {{ tarifaDiaria() | currency: 'BRL' }}</option>
+            <option value="HORA">Por hora · {{ tarifaHora() | currency: 'BRL' }}</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="observacoes">Observações</label>
+          <textarea id="observacoes" rows="4" formControlName="observacoes" placeholder="Informações relevantes para a hospedagem"></textarea>
+          <small class="field-hint">{{ formulario.controls.observacoes.value.length }}/2000 caracteres</small>
+        </div>
+      </div>
+
+      @if (formulario.hasError('periodoInvalido') && (formulario.controls.dataEntrada.touched || formulario.controls.dataSaida.touched)) {
+        <div class="period-error">A saída deve acontecer depois da entrada.</div>
+      }
+
+      @if (formulario.hasError('dataPassada') && formulario.controls.dataEntrada.touched) {
+        <div class="period-error">Data passada. Escolha uma data atual ou futura.</div>
+      }
+
+      @if (previa(); as calculo) {
+        <aside class="price-preview" aria-live="polite">
+          <div>
+            <span>Prévia da hospedagem</span>
+            <small>
+              @if (calculo.diarias) { {{ calculo.diarias }} diária(s) }
+              @if (calculo.diarias && calculo.horas) { + }
+              @if (calculo.horas) { {{ calculo.horas }} hora(s) }
+            </small>
+          </div>
+          <strong>{{ calculo.valorTotal | currency: 'BRL' }}</strong>
+        </aside>
+      }
+    </div>
+
+    @if (erro()) {
+      <div class="form-error" role="alert">{{ erro() }}</div>
+    }
+
+    <div class="form-actions">
+      <a class="button secondary" routerLink="/reservas">Cancelar</a>
+      <button class="button button-primary" type="submit" [disabled]="salvando() || !pets().length">
+        {{ salvando() ? 'Salvando...' : editando ? 'Salvar alterações' : 'Criar reserva' }}
+      </button>
+    </div>
+  </form>
+  }
+
+  @if (avisoDataPassada()) {
+    <div class="modal-backdrop" (click)="avisoDataPassada.set(false)">
+      <section class="date-alert" role="alertdialog" aria-modal="true" aria-labelledby="data-passada" (click)="$event.stopPropagation()">
+        <span class="alert-icon" aria-hidden="true">!</span>
+        <h2 id="data-passada">Data passada</h2>
+        <p>Escolha uma data atual ou futura.</p>
+        <button class="button button-primary" type="button" (click)="avisoDataPassada.set(false)">Entendi</button>
+      </section>
+    </div>
+  }
+</section>

@@ -1,0 +1,48 @@
+.breadcrumb { display: inline-block; margin-bottom: .55rem; color: var(--petzin-wine-700); font-size: .84rem; font-weight: 750; text-decoration: none; }
+.feedback { border: 1px solid #b9dfc4; border-radius: var(--petzin-radius-sm); padding: .8rem 1rem; color: #196b34; background: #effaf2; }
+.feedback.error { border-color: #f1c4ca; color: #8d1524; background: #fff0f1; }
+.hero-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.4rem; background: linear-gradient(110deg, #fff, #fdf8f3); }
+.pet-summary { display: flex; align-items: center; gap: 1rem; }
+.pet-summary img, .pet-avatar { display: grid; width: 64px; height: 64px; place-items: center; border-radius: 50%; object-fit: cover; background: var(--petzin-cream-200); font-size: 1.6rem; }
+.pet-summary small, .pet-summary p { color: var(--petzin-muted); }
+.pet-summary h2, .pet-summary p { margin: .15rem 0 0; }
+.hero-statuses { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+.status, .payment { display: inline-block; border-radius: 999px; padding: .42rem .65rem; font-size: .72rem; font-weight: 800; }
+.status-agendada { color: #a26400; background: #fff0bd; }
+.status-em_andamento { color: #167033; background: #dff5e5; }
+.status-concluida { color: #4e5965; background: #e9edf1; }
+.status-cancelada { color: #a92330; background: #ffe4e7; }
+.payment-pendente { color: #9a5b00; background: #fff3ce; }
+.payment-parcial { color: #1c64b7; background: #e0efff; }
+.payment-pago { color: #167033; background: #dff5e5; }
+.details-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 1rem; }
+.info-card, .financial-card, .actions-card { padding: 1.35rem; }
+.card-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.card-heading h2, .actions-card h2 { margin: 0; font-size: 1.02rem; }
+.card-heading span { color: var(--petzin-wine-700); }
+dl { display: grid; gap: .8rem; margin: 0; }
+dl div { display: flex; justify-content: space-between; gap: 1rem; padding-bottom: .75rem; border-bottom: 1px solid var(--petzin-border); }
+dt { color: var(--petzin-muted); font-size: .82rem; }
+dd { margin: 0; font-size: .88rem; font-weight: 700; text-align: right; }
+.notes { margin-top: 1rem; border-radius: 8px; padding: .85rem; background: #faf8f6; }
+.notes p { margin: .35rem 0 0; color: var(--petzin-muted); line-height: 1.5; }
+.money-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.money-grid div { display: grid; gap: .3rem; border-radius: 9px; padding: 1rem; background: #faf8f6; }
+.money-grid small, .tariff-note { color: var(--petzin-muted); }
+.money-grid strong { font-size: 1.25rem; }
+.money-grid .wine { color: var(--petzin-wine-700); }
+.tariff-note { display: block; margin-top: .8rem; }
+.payment-form { display: grid; grid-template-columns: minmax(220px, 1fr) auto; align-items: end; gap: 1rem; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--petzin-border); }
+.payment-form .field small { color: var(--petzin-muted); font-size: .72rem; }
+.actions-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.actions-card p { margin: .3rem 0 0; color: var(--petzin-muted); }
+.action-buttons { display: flex; gap: .7rem; }
+.button-outline-danger { border: 1px solid #e4aeb5; color: #a92330; background: white; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; background: rgb(35 19 18 / 55%); backdrop-filter: blur(3px); }
+.confirm-dialog { width: min(430px, 100%); border-radius: var(--petzin-radius-md); padding: 1.6rem; background: white; box-shadow: 0 24px 70px rgb(30 13 12 / 30%); text-align: center; }
+.dialog-icon { display: grid; width: 42px; height: 42px; margin: 0 auto .8rem; place-items: center; border-radius: 50%; color: #a92330; background: #ffe4e7; font-weight: 900; }
+.confirm-dialog h2 { margin: 0; font-size: 1.25rem; }
+.confirm-dialog p { color: var(--petzin-muted); }
+.dialog-actions { display: flex; justify-content: center; gap: .7rem; margin-top: 1.3rem; }
+@media (max-width: 760px) { .details-grid { grid-template-columns: 1fr; } .money-grid { grid-template-columns: 1fr; } .payment-form { grid-template-columns: 1fr; } .actions-card { align-items: stretch; flex-direction: column; } .action-buttons { flex-direction: column; } }
+@media (max-width: 520px) { .hero-card { align-items: flex-start; flex-direction: column; } .hero-statuses { justify-content: flex-start; } .dialog-actions { flex-direction: column-reverse; } }

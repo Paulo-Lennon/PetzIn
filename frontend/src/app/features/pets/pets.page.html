@@ -1,0 +1,70 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Pets</h1>
+      <p>Consulte e gerencie os animais cadastrados.</p>
+    </div>
+    <a class="button button-primary header-action" routerLink="/pets/novo">+ Cadastrar pet</a>
+  </header>
+
+  @if (mensagem()) {
+    <div class="feedback" [class.error]="mensagemDeErro()" role="status">{{ mensagem() }}</div>
+  }
+
+  <section class="surface table-wrap">
+    @if (carregando()) {
+      <div class="empty-state">Carregando pets...</div>
+    } @else if (erro()) {
+      <div class="empty-state">Não foi possível carregar os pets.</div>
+    } @else if (!pets().length) {
+      <div class="empty-state">Nenhum pet cadastrado.</div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr><th>Pet</th><th>Espécie</th><th>Raça</th><th>Tutor</th><th>Peso</th><th class="actions-heading">Ações</th></tr>
+        </thead>
+        <tbody>
+          @for (pet of pets(); track pet.id) {
+            <tr>
+              <td>
+                <div class="pet-identity">
+                  @if (pet.fotoUrl) {
+                    <img [src]="pet.fotoUrl" [alt]="'Foto de ' + pet.nome" />
+                  } @else {
+                    <span>{{ iniciais(pet.nome) }}</span>
+                  }
+                  <strong>{{ pet.nome }}</strong>
+                </div>
+              </td>
+              <td>{{ pet.especie }}</td>
+              <td>{{ pet.raca || 'Não informada' }}</td>
+              <td>{{ pet.tutor?.nome }}</td>
+              <td>{{ pet.pesoAtual ? pet.pesoAtual + ' kg' : '—' }}</td>
+              <td>
+                <div class="row-actions">
+                  <a class="icon-button" [routerLink]="['/pets', pet.id, 'editar']" title="Editar pet" [attr.aria-label]="'Editar ' + pet.nome">✎</a>
+                  <button class="icon-button danger" type="button" title="Desativar pet" [attr.aria-label]="'Desativar ' + pet.nome" (click)="solicitarDesativacao(pet)">⊘</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+
+  @if (petParaDesativar(); as pet) {
+    <div class="modal-backdrop" (click)="cancelarDesativacao()">
+      <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmar-pet" (click)="$event.stopPropagation()">
+        <span class="dialog-icon" aria-hidden="true">!</span>
+        <h2 id="confirmar-pet">Desativar pet?</h2>
+        <p><strong>{{ pet.nome }}</strong> deixará de aparecer nas listagens e não poderá receber novas reservas.</p>
+        <small>O pet só pode ser desativado quando não possuir reservas ativas.</small>
+        <div class="dialog-actions">
+          <button class="button button-secondary" type="button" (click)="cancelarDesativacao()" [disabled]="desativando()">Cancelar</button>
+          <button class="button button-danger" type="button" (click)="confirmarDesativacao()" [disabled]="desativando()">{{ desativando() ? 'Desativando...' : 'Sim, desativar' }}</button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

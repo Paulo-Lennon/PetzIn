@@ -1,0 +1,454 @@
+import 'reflect-metadata';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import app from '../app';
+import { AppDataSource } from '../config/database';
+import {
+  ModalidadeCobranca,
+  StatusPagamento,
+  StatusReserva,
+} from '../entities/Reserva';
+import { PetRepository } from '../repositories/PetRepository';
+import { ReservaRepository } from '../repositories/ReservaRepository';
+import { TutorRepository } from '../repositories/TutorRepository';
+import { UsuarioRepository } from '../repositories/UsuarioRepository';
+
+const segredoTeste = 'chave-exclusiva-para-testes-com-mais-de-32-caracteres';
+const identificadorTeste = Date.now();
+
+let usuarioId: string;
+let tokenAdministrativo: string;
+let tutorId: string;
+let petId: string;
+let outroPetId: string;
+let reservaDiariaId: string;
+let reservaHoraId: string;
+
+beforeAll(async () => {
+  process.env.JWT_SECRET = segredoTeste;
+  process.env.JWT_EXPIRES_IN = '2h';
+
+  if (!AppDataSource.isInitialized) {
+    await AppDataSource.initialize();
+  }
+
+  const usuario = await UsuarioRepository.save(
+    UsuarioRepository.create({
+      nome: 'Proprietária Teste Reserva',
+      email: `teste.admin.reserva.${identificadorTeste}@petzin.local`,
+      senhaHash: await bcrypt.hash('Teste@123', 12),
+    }),
+  );
+  usuarioId = usuario.id;
+  tokenAdministrativo = jwt.sign({}, segredoTeste, {
+    subject: usuarioId,
+    expiresIn: '2h',
+  });
+
+  const tutor = await TutorRepository.save(
+    TutorRepository.create({
+      nome: 'Tutor das Reservas',
+      telefone: '92999999999',
+    }),
+  );
+  tutorId = tutor.id;
+
+  const [pet, outroPet] = await PetRepository.save([
+    PetRepository.create({
+      nome: 'Rex Reserva',
+      especie: 'Cachorro',
+      tutorId,
+    }),
+    PetRepository.create({
+      nome: 'Luna Reserva',
+      especie: 'Gato',
+      tutorId,
+    }),
+  ]);
+  petId = pet.id;
+  outroPetId = outroPet.id;
+});
+
+afterAll(async () => {
+  if (AppDataSource.isInitialized) {
+    await ReservaRepository.delete({ petId });
+    await ReservaRepository.delete({ petId: outroPetId });
+    await PetRepository.delete({ id: petId });
+    await PetRepository.delete({ id: outroPetId });
+    await TutorRepository.delete({ id: tutorId });
+    await UsuarioRepository.delete({ id: usuarioId });
+    await AppDataSource.destroy();
+  }
+});
+
+describe('API administrativa de reservas', () => {
+  it('protege as rotas com JWT', async () => {
+    const [cadastro, listagem, financeiro] = await Promise.all([
+      request(app).post('/reservas').send({}),
+      request(app).get('/reservas'),
+      request(app).get('/financeiro/resumo'),
+    ]);
+
+    expect(cadastro.status).toBe(401);
+    expect(listagem.status).toBe(401);
+    expect(financeiro.status).toBe(401);
+  });
+
+  it.each([
+    [
+      {
+        petId,
+        dataEntrada: '2030-01-01T08:00:00',
+        dataSaida: '2030-01-01T10:00:00-04:00',
+        numeroCanil: 1,
+        modalidade: 'HORA',
+      },
+      'Data de entrada deve ser uma data e hora ISO 8601 com fuso horário',
+    ],
+    [
+      {
+        petId,
+        dataEntrada: '2030-01-01T10:00:00-04:00',
+        dataSaida: '2030-01-01T09:00:00-04:00',
+        numeroCanil: 1,
+        modalidade: 'HORA',
+      },
+      'Data de saída deve ser posterior à data de entrada',
+    ],
+    [
+      {
+        petId,
+        dataEntrada: '2030-01-01T08:00:00-04:00',
+        dataSaida: '2030-01-01T10:00:00-04:00',
+        numeroCanil: 0,
+        modalidade: 'HORA',
+      },
+      'Número do canil deve ser um número inteiro maior que zero',
+    ],
+    [
+      {
+        petId,
+        dataEntrada: '2030-01-01T08:00:00-04:00',
+        dataSaida: '2030-01-01T10:00:00-04:00',
+        numeroCanil: 1,
+        modalidade: 'MENSAL',
+      },
+      'Modalidade de cobrança é inválida',
+    ],
+  ])('rejeita dados inválidos no cadastro', async (dados, mensagem) => {
+    const resposta = await request(app)
+      .post('/reservas')
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ ...dados, petId });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body).toEqual({ mensagem });
+  });
+
+  it('rejeita reserva com entrada em data passada', async () => {
+    const resposta = await request(app)
+      .post('/reservas')
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({
+        petId,
+        dataEntrada: '2000-01-01T08:00:00-04:00',
+        dataSaida: '2000-01-01T10:00:00-04:00',
+        numeroCanil: 1,
+        modalidade: 'HORA',
+      });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body).toEqual({
+      mensagem: 'Data passada. Escolha uma data atual ou futura.',
+    });
+  });
+
+  it('cadastra múltiplas diárias e horas excedentes sem aceitar valor externo', async () => {
+    const resposta = await request(app)
+      .post('/reservas')
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({
+        petId,
+        dataEntrada: '2030-01-01T08:00:00-04:00',
+        dataSaida: '2030-01-03T09:01:00-04:00',
+        numeroCanil: 5,
+        modalidade: 'diaria',
+        observacoes: '  Levar a caminha do pet.  ',
+        valorTotal: 1,
+        tarifaHora: 1,
+        tarifaDiaria: 1,
+      });
+
+    expect(resposta.status).toBe(201);
+    expect(resposta.body).toMatchObject({
+      petId,
+      numeroCanil: 5,
+      modalidade: ModalidadeCobranca.DIARIA,
+      tarifaHora: 10,
+      tarifaDiaria: 240,
+      valorTotal: 500,
+      valorPago: 0,
+      statusPagamento: StatusPagamento.PENDENTE,
+      status: StatusReserva.AGENDADA,
+      observacoes: 'Levar a caminha do pet.',
+    });
+    reservaDiariaId = resposta.body.id;
+  });
+
+  it('impede sobreposição no mesmo canil', async () => {
+    const resposta = await request(app)
+      .post('/reservas')
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({
+        petId: outroPetId,
+        dataEntrada: '2030-01-02T08:00:00-04:00',
+        dataSaida: '2030-01-02T10:00:00-04:00',
+        numeroCanil: 5,
+        modalidade: 'HORA',
+      });
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body).toEqual({
+      mensagem: 'O canil já possui uma reserva nesse período',
+    });
+  });
+
+  it('impede reservas simultâneas para o mesmo pet em canis diferentes', async () => {
+    const resposta = await request(app)
+      .post('/reservas')
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({
+        petId,
+        dataEntrada: '2030-01-02T08:00:00-04:00',
+        dataSaida: '2030-01-02T10:00:00-04:00',
+        numeroCanil: 8,
+        modalidade: 'HORA',
+      });
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body).toEqual({
+      mensagem: 'O pet já possui uma reserva nesse período',
+    });
+  });
+
+  it('aceita outra reserva iniciando exatamente após a anterior', async () => {
+    const resposta = await request(app)
+      .post('/reservas')
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({
+        petId,
+        dataEntrada: '2030-01-03T09:01:00-04:00',
+        dataSaida: '2030-01-03T10:02:00-04:00',
+        numeroCanil: 5,
+        modalidade: 'HORA',
+      });
+
+    expect(resposta.status).toBe(201);
+    expect(resposta.body.valorTotal).toBe(20);
+    reservaHoraId = resposta.body.id;
+  });
+
+  it('lista, filtra e consulta reservas com pet e tutor', async () => {
+    const [listagem, filtro, detalhe] = await Promise.all([
+      request(app)
+        .get('/reservas')
+        .set('Authorization', `Bearer ${tokenAdministrativo}`),
+      request(app)
+        .get(`/reservas?petId=${petId}&status=agendada`)
+        .set('Authorization', `Bearer ${tokenAdministrativo}`),
+      request(app)
+        .get(`/reservas/${reservaDiariaId}`)
+        .set('Authorization', `Bearer ${tokenAdministrativo}`),
+    ]);
+
+    expect(listagem.status).toBe(200);
+    expect(filtro.status).toBe(200);
+    expect(filtro.body).toHaveLength(2);
+    expect(detalhe.status).toBe(200);
+    expect(detalhe.body.pet.id).toBe(petId);
+    expect(detalhe.body.pet.tutor.id).toBe(tutorId);
+  });
+
+  it('recalcula o valor ao alterar o período', async () => {
+    const resposta = await request(app)
+      .put(`/reservas/${reservaHoraId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ dataSaida: '2030-01-03T11:02:00-04:00' });
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.valorTotal).toBe(30);
+    expect(resposta.body.tarifaHora).toBe(10);
+    expect(resposta.body.tarifaDiaria).toBe(240);
+  });
+
+  it('controla as transições de status e bloqueia edição posterior', async () => {
+    const andamento = await request(app)
+      .patch(`/reservas/${reservaHoraId}/status`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ status: 'EM_ANDAMENTO' });
+    const edicao = await request(app)
+      .put(`/reservas/${reservaHoraId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ numeroCanil: 9 });
+    const conclusao = await request(app)
+      .patch(`/reservas/${reservaHoraId}/status`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ status: 'CONCLUIDA' });
+
+    expect(andamento.status).toBe(200);
+    expect(andamento.body.status).toBe(StatusReserva.EM_ANDAMENTO);
+    expect(edicao.status).toBe(409);
+    expect(conclusao.status).toBe(200);
+    expect(conclusao.body.status).toBe(StatusReserva.CONCLUIDA);
+  });
+
+  it('registra pagamento parcial e pagamento total', async () => {
+    const parcial = await request(app)
+      .patch(`/reservas/${reservaDiariaId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 100 });
+    const total = await request(app)
+      .patch(`/reservas/${reservaHoraId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 30 });
+
+    expect(parcial.status).toBe(200);
+    expect(parcial.body).toMatchObject({
+      valorPago: 100,
+      statusPagamento: StatusPagamento.PARCIAL,
+      pagoEm: null,
+    });
+    expect(total.status).toBe(200);
+    expect(total.body).toMatchObject({
+      valorPago: 30,
+      statusPagamento: StatusPagamento.PAGO,
+    });
+    expect(total.body.pagoEm).toEqual(expect.any(String));
+  });
+
+  it('rejeita valor pago acima do total da reserva', async () => {
+    const resposta = await request(app)
+      .patch(`/reservas/${reservaHoraId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 30.01 });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body).toEqual({
+      mensagem: 'Valor pago não pode ser maior que o valor total da reserva',
+    });
+  });
+
+  it('volta o pagamento para parcial quando o valor da reserva aumenta', async () => {
+    const cadastro = await request(app)
+      .post('/reservas')
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({
+        petId: outroPetId,
+        dataEntrada: '2031-01-01T08:00:00-04:00',
+        dataSaida: '2031-01-01T09:00:00-04:00',
+        numeroCanil: 6,
+        modalidade: 'HORA',
+      });
+    const reservaId = cadastro.body.id;
+
+    const pagamento = await request(app)
+      .patch(`/reservas/${reservaId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 10 });
+    const ampliacao = await request(app)
+      .put(`/reservas/${reservaId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ dataSaida: '2031-01-01T10:00:00-04:00' });
+
+    expect(pagamento.body.statusPagamento).toBe(StatusPagamento.PAGO);
+    expect(ampliacao.status).toBe(200);
+    expect(ampliacao.body).toMatchObject({
+      valorTotal: 20,
+      valorPago: 10,
+      statusPagamento: StatusPagamento.PARCIAL,
+      pagoEm: null,
+    });
+
+    await request(app)
+      .patch(`/reservas/${reservaId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 0 });
+    await request(app)
+      .delete(`/reservas/${reservaId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+  });
+
+  it('apresenta o resumo financeiro por período de entrada', async () => {
+    const resposta = await request(app)
+      .get('/financeiro/resumo')
+      .query({
+        dataInicio: '2030-01-01T00:00:00-04:00',
+        dataFim: '2030-01-04T00:00:00-04:00',
+      })
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toMatchObject({
+      totalPrevisto: 530,
+      totalRecebido: 130,
+      totalPendente: 400,
+      quantidadeReservas: 2,
+      quantidadeCanceladas: 0,
+      pagamentos: {
+        pendentes: 0,
+        parciais: 1,
+        pagos: 1,
+      },
+    });
+  });
+
+  it('exige zerar o pagamento antes de cancelar e preserva o histórico', async () => {
+    const bloqueio = await request(app)
+      .delete(`/reservas/${reservaDiariaId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+    const estorno = await request(app)
+      .patch(`/reservas/${reservaDiariaId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 0 });
+    const cancelamento = await request(app)
+      .delete(`/reservas/${reservaDiariaId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+    const reservaPersistida = await ReservaRepository.findOneByOrFail({
+      id: reservaDiariaId,
+    });
+
+    expect(bloqueio.status).toBe(409);
+    expect(bloqueio.body).toEqual({
+      mensagem: 'Não é possível cancelar uma reserva com valor pago',
+    });
+    expect(estorno.status).toBe(200);
+    expect(estorno.body).toMatchObject({
+      valorPago: 0,
+      statusPagamento: StatusPagamento.PENDENTE,
+      pagoEm: null,
+    });
+    expect(cancelamento.status).toBe(204);
+    expect(reservaPersistida.status).toBe(StatusReserva.CANCELADA);
+  });
+
+  it('exclui reservas canceladas dos totais financeiros', async () => {
+    const resposta = await request(app)
+      .get('/financeiro/resumo')
+      .query({
+        dataInicio: '2030-01-01T00:00:00-04:00',
+        dataFim: '2030-01-04T00:00:00-04:00',
+      })
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toMatchObject({
+      totalPrevisto: 30,
+      totalRecebido: 30,
+      totalPendente: 0,
+      quantidadeReservas: 1,
+      quantidadeCanceladas: 1,
+    });
+  });
+});

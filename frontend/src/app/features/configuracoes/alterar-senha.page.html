@@ -1,0 +1,58 @@
+<section class="page settings-page">
+  <header class="page-header">
+    <div>
+      <h1>Configurações</h1>
+      <p>Gerencie a segurança da conta administrativa.</p>
+    </div>
+  </header>
+
+  <section class="settings-grid">
+    <aside class="surface security-summary">
+      <span class="security-icon" aria-hidden="true">◆</span>
+      <h2>Segurança da conta</h2>
+      <p>A senha protege o acesso aos dados dos tutores, pets, reservas e informações financeiras.</p>
+      <ul>
+        <li>Use de 7 a 12 caracteres.</li>
+        <li>Inclua letras e números.</li>
+        <li>Inclua pelo menos um caractere especial.</li>
+      </ul>
+    </aside>
+
+    <form class="surface password-form" [formGroup]="formulario" (ngSubmit)="salvar()">
+      <div class="form-heading">
+        <h2>Alterar senha</h2>
+        <p>Confirme sua senha atual antes de definir uma nova.</p>
+      </div>
+
+      <div class="form-fields">
+        <div class="field">
+          <label for="senhaAtual">Senha atual *</label>
+          <input id="senhaAtual" type="password" autocomplete="current-password" formControlName="senhaAtual" placeholder="Digite sua senha atual" />
+          @if (invalido('senhaAtual')) { <small class="error-message">Informe a senha atual.</small> }
+        </div>
+
+        <div class="field">
+          <label for="novaSenha">Nova senha *</label>
+          <input id="novaSenha" type="password" minlength="7" maxlength="12" autocomplete="new-password" formControlName="novaSenha" placeholder="De 7 a 12 caracteres" />
+          @if (invalido('novaSenha')) { <small class="error-message">Use entre 7 e 12 caracteres, com letras, números e símbolo.</small> }
+        </div>
+
+        <div class="field">
+          <label for="confirmacao">Confirmar nova senha *</label>
+          <input id="confirmacao" type="password" minlength="7" maxlength="12" autocomplete="new-password" formControlName="confirmacao" placeholder="Repita a nova senha" />
+          @if (formulario.hasError('senhasDiferentes') && formulario.controls.confirmacao.touched) { <small class="error-message">As novas senhas não coincidem.</small> }
+        </div>
+      </div>
+
+      @if (mensagem()) {
+        <div class="feedback" [class.error]="mensagemDeErro()" role="status">{{ mensagem() }}</div>
+      }
+
+      <div class="form-actions">
+        <button class="button button-primary" type="submit" [disabled]="salvando()">
+          {{ salvando() ? 'Alterando...' : 'Alterar senha' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</section>

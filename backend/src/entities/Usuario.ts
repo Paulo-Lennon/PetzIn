@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 // Define a tabela no PostgreSQL
@@ -24,7 +25,13 @@ export class Usuario {
   @Column({ type: 'varchar', length: 255, select: false })
   senhaHash!: string;
 
+  @Column({ type: 'boolean', default: true })
+  ativo!: boolean;
+
   // Data de criação do cadastro
   @CreateDateColumn()
   criadoEm!: Date;
+
+  @UpdateDateColumn()
+  atualizadoEm!: Date;
 }

@@ -1,0 +1,60 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Clientes</h1>
+      <p>Gerencie os tutores responsáveis pelos pets.</p>
+    </div>
+    <a class="button button-primary header-action" routerLink="/tutores/novo">+ Novo tutor</a>
+  </header>
+
+  @if (mensagem()) {
+    <div class="feedback" [class.error]="mensagemDeErro()" role="status">{{ mensagem() }}</div>
+  }
+
+  <section class="surface table-wrap">
+    @if (carregando()) {
+      <div class="empty-state">Carregando clientes...</div>
+    } @else if (erro()) {
+      <div class="empty-state">Não foi possível carregar os clientes.</div>
+    } @else if (!tutores().length) {
+      <div class="empty-state">Nenhum cliente cadastrado.</div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Pets</th><th class="actions-heading">Ações</th></tr>
+        </thead>
+        <tbody>
+          @for (tutor of tutores(); track tutor.id) {
+            <tr>
+              <td><strong>{{ tutor.nome }}</strong></td>
+              <td>{{ tutor.telefone }}</td>
+              <td>{{ tutor.email || 'Não informado' }}</td>
+              <td>{{ tutor.pets?.length ?? '—' }}</td>
+              <td>
+                <div class="row-actions">
+                  <a class="icon-button" [routerLink]="['/tutores', tutor.id, 'editar']" title="Editar tutor" [attr.aria-label]="'Editar ' + tutor.nome">✎</a>
+                  <button class="icon-button danger" type="button" title="Desativar tutor" [attr.aria-label]="'Desativar ' + tutor.nome" (click)="solicitarDesativacao(tutor)">⊘</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+
+  @if (tutorParaDesativar(); as tutor) {
+    <div class="modal-backdrop" (click)="cancelarDesativacao()">
+      <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmar-tutor" (click)="$event.stopPropagation()">
+        <span class="dialog-icon" aria-hidden="true">!</span>
+        <h2 id="confirmar-tutor">Desativar tutor?</h2>
+        <p><strong>{{ tutor.nome }}</strong> deixará de aparecer nas listagens e não poderá receber novos pets.</p>
+        <small>O tutor só pode ser desativado quando não possuir pets ativos.</small>
+        <div class="dialog-actions">
+          <button class="button button-secondary" type="button" (click)="cancelarDesativacao()" [disabled]="desativando()">Cancelar</button>
+          <button class="button button-danger" type="button" (click)="confirmarDesativacao()" [disabled]="desativando()">{{ desativando() ? 'Desativando...' : 'Sim, desativar' }}</button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

@@ -1,0 +1,55 @@
+<main class="login-page">
+  <section class="login-card">
+    <div class="welcome-panel">
+      <div class="brand">
+        <svg class="brand-paw" viewBox="0 0 64 64" aria-hidden="true">
+          <ellipse cx="18" cy="17" rx="7" ry="10" transform="rotate(-24 18 17)" />
+          <ellipse cx="32" cy="12" rx="7" ry="10" />
+          <ellipse cx="46" cy="17" rx="7" ry="10" transform="rotate(24 46 17)" />
+          <ellipse cx="53" cy="31" rx="6" ry="9" transform="rotate(32 53 31)" />
+          <path d="M32 25c-10 0-19 13-19 22 0 7 6 10 12 8 4-1 10-1 14 0 6 2 12-1 12-8 0-9-9-22-19-22Z" />
+        </svg>
+        <strong>PetzIn</strong>
+        <small>Hotel e Creche para Pets</small>
+      </div>
+      <div class="login-slogan">
+        <p>Cuidado, conforto<br />e diversão para<br />o seu melhor amigo!</p>
+      </div>
+    </div>
+
+    <div class="form-panel">
+      <div>
+        <h1>Bem-vindo!</h1>
+        <p class="subtitle">Acesse sua conta para gerenciar as reservas do PetzIn.</p>
+      </div>
+
+      <form [formGroup]="formulario" (ngSubmit)="entrar()">
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" formControlName="email" autocomplete="email" placeholder="seu@email.com" />
+          @if (formulario.controls.email.touched && formulario.controls.email.invalid) {
+            <span class="error-message">Informe um e-mail válido.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="senha">Senha</label>
+          <input id="senha" type="password" formControlName="senha" autocomplete="current-password" placeholder="Sua senha" />
+          @if (formulario.controls.senha.touched && formulario.controls.senha.invalid) {
+            <span class="error-message">Informe sua senha.</span>
+          }
+        </div>
+
+        @if (erro()) {
+          <div class="login-error" role="alert">{{ erro() }}</div>
+        }
+
+        <button class="button button-primary" type="submit" [disabled]="carregando()">
+          {{ carregando() ? 'Entrando...' : 'Entrar' }}
+        </button>
+      </form>
+
+      <p class="security-note">Acesso exclusivo da administração do hotel.</p>
+    </div>
+  </section>
+</main>
