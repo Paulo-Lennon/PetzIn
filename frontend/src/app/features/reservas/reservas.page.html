@@ -1,0 +1,37 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Reservas</h1>
+      <p>Visualize e gerencie todas as hospedagens.</p>
+    </div>
+    <a class="button button-primary new-reservation" routerLink="/reservas/nova">+ Nova reserva</a>
+  </header>
+
+  <section class="surface table-wrap">
+    @if (carregando()) {
+      <div class="empty-state">Carregando reservas...</div>
+    } @else if (erro()) {
+      <div class="empty-state">Não foi possível carregar as reservas.</div>
+    } @else if (!reservas().length) {
+      <div class="empty-state">Nenhuma reserva cadastrada.</div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr><th>Pet</th><th>Tutor</th><th>Período</th><th>Canil</th><th>Status</th><th>Valor</th></tr>
+        </thead>
+        <tbody>
+          @for (reserva of reservas(); track reserva.id) {
+            <tr>
+              <td><strong>{{ reserva.pet?.nome }}</strong></td>
+              <td>{{ reserva.pet?.tutor?.nome }}</td>
+              <td>{{ reserva.dataEntrada | date: 'dd/MM HH:mm' }} — {{ reserva.dataSaida | date: 'dd/MM HH:mm' }}</td>
+              <td>{{ reserva.numeroCanil }}</td>
+              <td><span [class]="classeStatus(reserva.status)">{{ reserva.status }}</span></td>
+              <td>{{ reserva.valorTotal | currency: 'BRL' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+</section>

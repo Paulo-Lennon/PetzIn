@@ -1,0 +1,99 @@
+.reservation-form-page {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.reservation-form {
+  overflow: hidden;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  padding: 1.4rem;
+  border-bottom: 1px solid var(--petzin-border);
+  color: var(--petzin-muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.steps span {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+}
+
+.steps b {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  background: #c9c8c6;
+}
+
+.steps .active b {
+  background: var(--petzin-wine-700);
+}
+
+.form-section {
+  padding: 1.5rem;
+}
+
+.form-section h2 {
+  margin: 0 0 1.25rem;
+  font-size: 1.05rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.form-error {
+  margin: 0 1.5rem;
+  border-radius: var(--petzin-radius-sm);
+  padding: 0.8rem;
+  color: #8d1524;
+  background: #fff0f1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.5rem 1.5rem;
+}
+
+.secondary {
+  display: inline-grid;
+  place-items: center;
+  color: var(--petzin-ink);
+  background: #f0efed;
+  text-decoration: none;
+}
+
+@media (max-width: 680px) {
+  .steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field.full {
+    grid-column: auto;
+  }
+}

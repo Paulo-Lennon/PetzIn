@@ -1,0 +1,36 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Pets</h1>
+      <p>Consulte e gerencie os animais cadastrados.</p>
+    </div>
+    <button class="button button-primary" type="button">+ Cadastrar pet</button>
+  </header>
+
+  <section class="surface table-wrap">
+    @if (carregando()) {
+      <div class="empty-state">Carregando pets...</div>
+    } @else if (erro()) {
+      <div class="empty-state">Não foi possível carregar os pets.</div>
+    } @else if (!pets().length) {
+      <div class="empty-state">Nenhum pet cadastrado.</div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr><th>Pet</th><th>Espécie</th><th>Raça</th><th>Tutor</th><th>Peso</th></tr>
+        </thead>
+        <tbody>
+          @for (pet of pets(); track pet.id) {
+            <tr>
+              <td><strong>{{ pet.nome }}</strong></td>
+              <td>{{ pet.especie }}</td>
+              <td>{{ pet.raca || 'Não informada' }}</td>
+              <td>{{ pet.tutor?.nome }}</td>
+              <td>{{ pet.pesoAtual ? pet.pesoAtual + ' kg' : '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+</section>

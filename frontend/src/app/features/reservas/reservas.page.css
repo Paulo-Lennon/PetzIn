@@ -1,0 +1,18 @@
+.new-reservation {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.status {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.status-agendada { color: #a26400; background: #fff0bd; }
+.status-em_andamento { color: #167033; background: #dff5e5; }
+.status-concluida { color: #4e5965; background: #e9edf1; }
+.status-cancelada { color: #a92330; background: #ffe4e7; }

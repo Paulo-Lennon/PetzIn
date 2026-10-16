@@ -1,0 +1,71 @@
+<section class="page reservation-form-page">
+  <header class="page-header">
+    <div>
+      <h1>Nova reserva</h1>
+      <p>Selecione o pet, o período e a acomodação.</p>
+    </div>
+  </header>
+
+  <form class="surface reservation-form" [formGroup]="formulario" (ngSubmit)="salvar()">
+    <div class="steps" aria-label="Etapas da reserva">
+      <span class="active"><b>1</b> Pet</span>
+      <span class="active"><b>2</b> Período</span>
+      <span class="active"><b>3</b> Acomodação</span>
+      <span><b>4</b> Confirmação</span>
+    </div>
+
+    <div class="form-section">
+      <h2>Dados da hospedagem</h2>
+      <div class="form-grid">
+        <div class="field full">
+          <label for="petId">Pet</label>
+          <select id="petId" formControlName="petId">
+            <option value="">Selecione um pet</option>
+            @for (pet of pets(); track pet.id) {
+              <option [value]="pet.id">{{ pet.nome }} · {{ pet.tutor?.nome }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="dataEntrada">Entrada</label>
+          <input id="dataEntrada" type="datetime-local" formControlName="dataEntrada" />
+        </div>
+
+        <div class="field">
+          <label for="dataSaida">Saída</label>
+          <input id="dataSaida" type="datetime-local" formControlName="dataSaida" />
+        </div>
+
+        <div class="field">
+          <label for="numeroCanil">Número do canil</label>
+          <input id="numeroCanil" type="number" min="1" formControlName="numeroCanil" />
+        </div>
+
+        <div class="field">
+          <label for="modalidade">Modalidade</label>
+          <select id="modalidade" formControlName="modalidade">
+            <option value="DIARIA">Diária · R$ 240,00</option>
+            <option value="HORA">Por hora · R$ 10,00</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="observacoes">Observações</label>
+          <textarea id="observacoes" rows="4" formControlName="observacoes" placeholder="Informações relevantes para a hospedagem"></textarea>
+        </div>
+      </div>
+    </div>
+
+    @if (erro()) {
+      <div class="form-error" role="alert">{{ erro() }}</div>
+    }
+
+    <div class="form-actions">
+      <a class="button secondary" routerLink="/reservas">Cancelar</a>
+      <button class="button button-primary" type="submit" [disabled]="salvando() || !pets().length">
+        {{ salvando() ? 'Salvando...' : 'Criar reserva' }}
+      </button>
+    </div>
+  </form>
+</section>

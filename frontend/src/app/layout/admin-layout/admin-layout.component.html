@@ -1,0 +1,56 @@
+<div class="admin-shell" [class.menu-open]="menuAberto()">
+  <aside class="sidebar" aria-label="Navegação principal">
+    <a class="brand" routerLink="/dashboard" (click)="fecharMenu()">
+      <span class="brand-mark" aria-hidden="true">🐾</span>
+      <span>PetzIn</span>
+    </a>
+
+    <nav>
+      @for (item of navegacao; track item.rota) {
+        <a
+          [routerLink]="item.rota"
+          routerLinkActive="active"
+          (click)="fecharMenu()"
+        >
+          <span class="nav-icon" aria-hidden="true">{{ item.icone }}</span>
+          <span>{{ item.texto }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="profile">
+      <span class="avatar">{{ authService.usuario()?.nome?.charAt(0) || 'P' }}</span>
+      <span class="profile-copy">
+        <strong>{{ authService.usuario()?.nome || 'Proprietária' }}</strong>
+        <small>Administradora</small>
+      </span>
+      <button type="button" title="Sair" aria-label="Sair" (click)="authService.sair()">
+        ↪
+      </button>
+    </div>
+  </aside>
+
+  <div class="mobile-backdrop" (click)="fecharMenu()"></div>
+
+  <section class="workspace">
+    <header class="topbar">
+      <button
+        class="menu-button"
+        type="button"
+        aria-label="Abrir menu"
+        (click)="alternarMenu()"
+      >
+        ☰
+      </button>
+      <span class="topbar-name">Hotel e Creche para Pets</span>
+      <div class="topbar-actions">
+        <button type="button" aria-label="Notificações">♢</button>
+        <span class="avatar small">{{ authService.usuario()?.nome?.charAt(0) || 'P' }}</span>
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </section>
+</div>

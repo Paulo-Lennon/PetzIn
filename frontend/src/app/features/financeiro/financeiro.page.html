@@ -1,0 +1,30 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Financeiro</h1>
+      <p>Acompanhe valores previstos, recebidos e pendentes.</p>
+    </div>
+  </header>
+
+  @if (carregando()) {
+    <div class="surface empty-state">Carregando resumo financeiro...</div>
+  } @else if (erro() || !resumo()) {
+    <div class="surface empty-state">Não foi possível carregar o resumo financeiro.</div>
+  } @else {
+    <div class="financial-grid">
+      <article class="surface financial-card"><small>Total previsto</small><strong>{{ resumo()!.totalPrevisto | currency: 'BRL' }}</strong></article>
+      <article class="surface financial-card received"><small>Total recebido</small><strong>{{ resumo()!.totalRecebido | currency: 'BRL' }}</strong></article>
+      <article class="surface financial-card pending"><small>Total pendente</small><strong>{{ resumo()!.totalPendente | currency: 'BRL' }}</strong></article>
+    </div>
+
+    <section class="surface payment-summary">
+      <h2>Situação dos pagamentos</h2>
+      <div>
+        <span><strong>{{ resumo()!.pagamentos.pagos }}</strong> pagos</span>
+        <span><strong>{{ resumo()!.pagamentos.parciais }}</strong> parciais</span>
+        <span><strong>{{ resumo()!.pagamentos.pendentes }}</strong> pendentes</span>
+        <span><strong>{{ resumo()!.quantidadeCanceladas }}</strong> cancelados</span>
+      </div>
+    </section>
+  }
+</section>

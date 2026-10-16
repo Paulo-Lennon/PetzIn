@@ -1,0 +1,41 @@
+.financial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.financial-card {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1.4rem;
+  border-top: 4px solid var(--petzin-wine-700);
+}
+
+.financial-card.received { border-top-color: var(--petzin-green); }
+.financial-card.pending { border-top-color: var(--petzin-yellow); }
+.financial-card small { color: var(--petzin-muted); }
+.financial-card strong { font-size: 1.7rem; }
+
+.payment-summary {
+  padding: 1.4rem;
+}
+
+.payment-summary h2 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.payment-summary > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  color: var(--petzin-muted);
+}
+
+.payment-summary strong {
+  color: var(--petzin-ink);
+}
+
+@media (max-width: 760px) {
+  .financial-grid { grid-template-columns: 1fr; }
+}

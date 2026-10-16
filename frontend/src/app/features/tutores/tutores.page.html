@@ -1,0 +1,35 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Clientes</h1>
+      <p>Gerencie os tutores responsáveis pelos pets.</p>
+    </div>
+    <button class="button button-primary" type="button">+ Novo cliente</button>
+  </header>
+
+  <section class="surface table-wrap">
+    @if (carregando()) {
+      <div class="empty-state">Carregando clientes...</div>
+    } @else if (erro()) {
+      <div class="empty-state">Não foi possível carregar os clientes.</div>
+    } @else if (!tutores().length) {
+      <div class="empty-state">Nenhum cliente cadastrado.</div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Pets</th></tr>
+        </thead>
+        <tbody>
+          @for (tutor of tutores(); track tutor.id) {
+            <tr>
+              <td><strong>{{ tutor.nome }}</strong></td>
+              <td>{{ tutor.telefone }}</td>
+              <td>{{ tutor.email || 'Não informado' }}</td>
+              <td>{{ tutor.pets?.length ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+</section>

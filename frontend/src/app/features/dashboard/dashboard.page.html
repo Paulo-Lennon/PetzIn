@@ -1,0 +1,84 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Visão geral do hotel e creche.</p>
+    </div>
+    <div class="today">▣ Hoje · {{ hoje | date: 'dd/MM/yyyy' }}</div>
+  </header>
+
+  @if (erro()) {
+    <div class="surface empty-state">Não foi possível carregar os dados do dashboard.</div>
+  } @else {
+    <div class="summary-grid" [class.loading]="carregando()">
+      <article class="summary-card orange">
+        <span>🐕</span>
+        <strong>{{ quantidadeHospedados() }}</strong>
+        <small>Pets hospedados</small>
+      </article>
+      <article class="summary-card green">
+        <span>↗</span>
+        <strong>{{ quantidadeAgendadas() }}</strong>
+        <small>Próximas entradas</small>
+      </article>
+      <article class="summary-card blue">
+        <span>🐾</span>
+        <strong>{{ quantidadePets() }}</strong>
+        <small>Pets cadastrados</small>
+      </article>
+      <article class="summary-card wine">
+        <span>R$</span>
+        <strong>{{ financeiro()?.totalPendente ?? 0 | currency: 'BRL' }}</strong>
+        <small>Saldo pendente</small>
+      </article>
+    </div>
+
+    <div class="dashboard-grid">
+      <section class="surface panel">
+        <div class="panel-title">
+          <h2>Pets hospedados agora</h2>
+          <a routerLink="/reservas">Ver todos</a>
+        </div>
+        @if (hospedados().length) {
+          <div class="item-list">
+            @for (reserva of hospedados(); track reserva.id) {
+              <article class="list-item">
+                <span class="pet-avatar">🐾</span>
+                <div>
+                  <strong>{{ reserva.pet?.nome }}</strong>
+                  <small>Canil {{ reserva.numeroCanil }}</small>
+                </div>
+                <span class="badge green-badge">Hospedado</span>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="compact-empty">Nenhum pet em hospedagem agora.</div>
+        }
+      </section>
+
+      <section class="surface panel">
+        <div class="panel-title">
+          <h2>Próximas reservas</h2>
+          <a routerLink="/reservas">Ver todos</a>
+        </div>
+        @if (proximas().length) {
+          <div class="item-list">
+            @for (reserva of proximas(); track reserva.id) {
+              <article class="list-item">
+                <time>{{ reserva.dataEntrada | date: 'dd/MM' }}</time>
+                <div>
+                  <strong>{{ reserva.pet?.nome }}</strong>
+                  <small>{{ reserva.pet?.tutor?.nome }}</small>
+                </div>
+                <span class="badge blue-badge">Entrada</span>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="compact-empty">Nenhuma reserva agendada.</div>
+        }
+      </section>
+    </div>
+  }
+</section>
