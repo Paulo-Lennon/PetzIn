@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { tratarErros } from './middlewares/tratamentoErros';
 import petRoutes from './routes/petRoutes';
+import reservaRoutes from './routes/reservaRoutes';
 import tutorRoutes from './routes/tutorRoutes';
 import usuarioRoutes from './routes/usuarioRoutes';
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(usuarioRoutes);
 app.use(tutorRoutes);
 app.use(petRoutes);
+app.use(reservaRoutes);
 
 // Rota para verificar o funcionamento da API
 app.get('/health', (_req, res) => {

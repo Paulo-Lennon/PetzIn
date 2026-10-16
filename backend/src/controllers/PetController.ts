@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import {
+  ErroConflitoPet,
   ErroPetNaoEncontrado,
   ErroValidacaoPet,
   PetService,
@@ -16,6 +17,11 @@ export class PetController {
 
     if (error instanceof ErroPetNaoEncontrado) {
       res.status(404).json({ mensagem: error.message });
+      return;
+    }
+
+    if (error instanceof ErroConflitoPet) {
+      res.status(409).json({ mensagem: error.message });
       return;
     }
 

@@ -7,9 +7,11 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
+  OneToMany,
   ValueTransformer,
 } from 'typeorm';
 import { Tutor } from './Tutor';
+import { Reserva } from './Reserva';
 
 const transformarDecimal: ValueTransformer = {
   to: (valor: number | null) => valor,
@@ -74,6 +76,9 @@ export class Pet {
   })
   @JoinColumn({ name: 'tutorId' })
   tutor!: Tutor;
+
+  @OneToMany(() => Reserva, (reserva) => reserva.pet)
+  reservas!: Reserva[];
 
   @CreateDateColumn()
   criadoEm!: Date;

@@ -6,7 +6,12 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import app from '../app';
 import { AppDataSource } from '../config/database';
 import { SexoPet } from '../entities/Pet';
+import {
+  ModalidadeCobranca,
+  StatusReserva,
+} from '../entities/Reserva';
 import { PetRepository } from '../repositories/PetRepository';
+import { ReservaRepository } from '../repositories/ReservaRepository';
 import { TutorRepository } from '../repositories/TutorRepository';
 import { UsuarioRepository } from '../repositories/UsuarioRepository';
 
@@ -80,6 +85,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (AppDataSource.isInitialized) {
+    await ReservaRepository.delete({ petId: petVisivelId });
     await PetRepository.delete({ tutorId });
     await PetRepository.delete({ tutorId: outroTutorId });
     await TutorRepository.delete({ id: tutorId });
@@ -273,6 +279,36 @@ describe('API administrativa de pets', () => {
     expect(resposta.body).toEqual({
       mensagem: 'Informe ao menos um campo para atualizar',
     });
+  });
+
+  it('impede desativar um pet com reserva ativa', async () => {
+    const reserva = await ReservaRepository.save(
+      ReservaRepository.create({
+        petId: petVisivelId,
+        dataEntrada: new Date('2040-01-01T08:00:00-04:00'),
+        dataSaida: new Date('2040-01-01T10:00:00-04:00'),
+        numeroCanil: 99,
+        modalidade: ModalidadeCobranca.HORA,
+        tarifaHora: 10,
+        tarifaDiaria: 240,
+        valorTotal: 20,
+        status: StatusReserva.AGENDADA,
+      }),
+    );
+
+    const resposta = await request(app)
+      .delete(`/pets/${petVisivelId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body).toEqual({
+      mensagem: 'Não é possível desativar um pet que possui reservas ativas',
+    });
+
+    await ReservaRepository.update(
+      { id: reserva.id },
+      { status: StatusReserva.CANCELADA },
+    );
   });
 
   it('desativa o pet sem apagar seu registro', async () => {

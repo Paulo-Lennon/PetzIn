@@ -1,6 +1,9 @@
 import { SexoPet } from '../entities/Pet';
+import { StatusReserva } from '../entities/Reserva';
 import { PetRepository } from '../repositories/PetRepository';
+import { ReservaRepository } from '../repositories/ReservaRepository';
 import { TutorRepository } from '../repositories/TutorRepository';
+import { In } from 'typeorm';
 
 export class ErroValidacaoPet extends Error {
   constructor(mensagem: string) {
@@ -13,6 +16,13 @@ export class ErroPetNaoEncontrado extends Error {
   constructor() {
     super('Pet não encontrado');
     this.name = 'ErroPetNaoEncontrado';
+  }
+}
+
+export class ErroConflitoPet extends Error {
+  constructor(mensagem: string) {
+    super(mensagem);
+    this.name = 'ErroConflitoPet';
   }
 }
 
@@ -321,6 +331,22 @@ export class PetService {
 
     if (!pet) {
       throw new ErroPetNaoEncontrado();
+    }
+
+    const quantidadeReservasAtivas = await ReservaRepository.count({
+      where: {
+        petId: id,
+        status: In([
+          StatusReserva.AGENDADA,
+          StatusReserva.EM_ANDAMENTO,
+        ]),
+      },
+    });
+
+    if (quantidadeReservasAtivas > 0) {
+      throw new ErroConflitoPet(
+        'Não é possível desativar um pet que possui reservas ativas',
+      );
     }
 
     pet.ativo = false;
