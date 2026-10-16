@@ -4,6 +4,7 @@ import {
   ErroAcesso,
   ErroAutenticacao,
   ErroNaoEncontrado,
+  ErroSenhaAtual,
   ErroValidacao,
 } from '../services/UsuarioService';
 
@@ -118,6 +119,37 @@ export class UsuarioController {
       res.status(500).json({
         mensagem: 'Não foi possível consultar o perfil do usuário',
       });
+    }
+  }
+
+  async alterarSenha(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.usuarioId) {
+        res.status(401).json({ mensagem: 'Usuário não autenticado' });
+        return;
+      }
+
+      const { senhaAtual, novaSenha } = req.body ?? {};
+      await usuarioService.alterarSenha(req.usuarioId, senhaAtual, novaSenha);
+      res.status(204).send();
+    } catch (error) {
+      if (error instanceof ErroValidacao) {
+        res.status(400).json({ mensagem: error.message });
+        return;
+      }
+
+      if (error instanceof ErroSenhaAtual) {
+        res.status(401).json({ mensagem: error.message });
+        return;
+      }
+
+      if (error instanceof ErroNaoEncontrado) {
+        res.status(404).json({ mensagem: error.message });
+        return;
+      }
+
+      console.error('Erro ao alterar senha do usuário:', error);
+      res.status(500).json({ mensagem: 'Não foi possível alterar a senha' });
     }
   }
 }

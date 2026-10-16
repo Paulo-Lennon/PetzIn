@@ -147,6 +147,24 @@ describe('API administrativa de reservas', () => {
     expect(resposta.body).toEqual({ mensagem });
   });
 
+  it('rejeita reserva com entrada em data passada', async () => {
+    const resposta = await request(app)
+      .post('/reservas')
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({
+        petId,
+        dataEntrada: '2000-01-01T08:00:00-04:00',
+        dataSaida: '2000-01-01T10:00:00-04:00',
+        numeroCanil: 1,
+        modalidade: 'HORA',
+      });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body).toEqual({
+      mensagem: 'Data passada. Escolha uma data atual ou futura.',
+    });
+  });
+
   it('cadastra múltiplas diárias e horas excedentes sem aceitar valor externo', async () => {
     const resposta = await request(app)
       .post('/reservas')

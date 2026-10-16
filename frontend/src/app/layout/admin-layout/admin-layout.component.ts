@@ -18,6 +18,7 @@ export class AdminLayoutComponent {
     { rota: '/pets', icone: '●', texto: 'Pets' },
     { rota: '/tutores', icone: '♙', texto: 'Clientes (Tutores)' },
     { rota: '/financeiro', icone: '▥', texto: 'Financeiro' },
+    { rota: '/configuracoes/senha', icone: '⚙', texto: 'Configurações' },
   ];
 
   protected alternarMenu(): void {

@@ -19,3 +19,12 @@ export async function buscarUsuarioPorId(id: string): Promise<Usuario | null> {
     where: { id },
   });
 }
+
+export async function buscarUsuarioPorIdComSenha(
+  id: string,
+): Promise<Usuario | null> {
+  return UsuarioRepository.createQueryBuilder('usuario')
+    .addSelect('usuario.senhaHash')
+    .where('usuario.id = :id', { id })
+    .getOne();
+}

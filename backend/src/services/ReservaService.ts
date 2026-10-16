@@ -82,6 +82,17 @@ function validarPeriodo(dataEntrada: Date, dataSaida: Date): void {
   }
 }
 
+function validarEntradaNaoPassada(dataEntrada: Date): void {
+  const inicioMinutoAtual = new Date();
+  inicioMinutoAtual.setSeconds(0, 0);
+
+  if (dataEntrada.getTime() < inicioMinutoAtual.getTime()) {
+    throw new ErroValidacaoReserva(
+      'Data passada. Escolha uma data atual ou futura.',
+    );
+  }
+}
+
 function validarNumeroCanil(valor: unknown): number {
   if (typeof valor !== 'number' || !Number.isInteger(valor) || valor <= 0) {
     throw new ErroValidacaoReserva(
@@ -264,6 +275,7 @@ export class ReservaService {
     const modalidade = validarModalidade(dados.modalidade);
 
     validarPeriodo(dataEntrada, dataSaida);
+    validarEntradaNaoPassada(dataEntrada);
     await validarPetAtivo(petId);
     await validarDisponibilidade(
       petId,
@@ -375,6 +387,7 @@ export class ReservaService {
       : reserva.modalidade;
 
     validarPeriodo(dataEntrada, dataSaida);
+    validarEntradaNaoPassada(dataEntrada);
     await validarPetAtivo(petId);
     await validarDisponibilidade(
       petId,

@@ -24,6 +24,13 @@ export class AuthService {
       .pipe(tap((resposta) => this.armazenarSessao(resposta)));
   }
 
+  alterarSenha(senhaAtual: string, novaSenha: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/usuarios/me/senha`, {
+      senhaAtual,
+      novaSenha,
+    });
+  }
+
   sair(): void {
     localStorage.removeItem(CHAVE_TOKEN);
     localStorage.removeItem(CHAVE_USUARIO);

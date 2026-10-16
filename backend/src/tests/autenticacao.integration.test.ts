@@ -134,6 +134,63 @@ describe('Autenticação de usuários', () => {
     expect(resposta.body).not.toHaveProperty('senhaHash');
   });
 
+  it('exige autenticação para alterar a senha', async () => {
+    const resposta = await request(app)
+      .patch('/usuarios/me/senha')
+      .send({ senhaAtual: senhaTeste, novaSenha: 'Nova@123' });
+
+    expect(resposta.status).toBe(401);
+  });
+
+  it('rejeita senha atual incorreta e nova senha fora das regras', async () => {
+    const [senhaAtualIncorreta, novaSenhaInvalida] = await Promise.all([
+      request(app)
+        .patch('/usuarios/me/senha')
+        .set('Authorization', `Bearer ${tokenValido}`)
+        .send({ senhaAtual: 'Errada@123', novaSenha: 'Nova@123' }),
+      request(app)
+        .patch('/usuarios/me/senha')
+        .set('Authorization', `Bearer ${tokenValido}`)
+        .send({ senhaAtual: senhaTeste, novaSenha: 'semnumero!' }),
+    ]);
+
+    expect(senhaAtualIncorreta.status).toBe(401);
+    expect(senhaAtualIncorreta.body).toEqual({
+      mensagem: 'Senha atual incorreta',
+    });
+    expect(novaSenhaInvalida.status).toBe(400);
+  });
+
+  it('altera a senha e passa a autenticar somente com a nova senha', async () => {
+    const novaSenha = 'Nova@123';
+
+    try {
+      const alteracao = await request(app)
+        .patch('/usuarios/me/senha')
+        .set('Authorization', `Bearer ${tokenValido}`)
+        .send({ senhaAtual: senhaTeste, novaSenha });
+      const [loginAntigo, loginNovo] = await Promise.all([
+        request(app).post('/usuarios/login').send({
+          email: emailTeste,
+          senha: senhaTeste,
+        }),
+        request(app).post('/usuarios/login').send({
+          email: emailTeste,
+          senha: novaSenha,
+        }),
+      ]);
+
+      expect(alteracao.status).toBe(204);
+      expect(loginAntigo.status).toBe(401);
+      expect(loginNovo.status).toBe(200);
+    } finally {
+      await UsuarioRepository.update(
+        { id: usuarioId },
+        { senhaHash: await bcrypt.hash(senhaTeste, 12) },
+      );
+    }
+  });
+
   it('impede criar uma segunda conta administrativa', async () => {
     const resposta = await request(app).post('/usuarios').send({
       nome: 'Outro administrador',

@@ -33,7 +33,7 @@
 
         <div class="field">
           <label for="dataEntrada">Entrada *</label>
-          <input id="dataEntrada" type="datetime-local" formControlName="dataEntrada" />
+          <input id="dataEntrada" type="datetime-local" [min]="dataMinima" formControlName="dataEntrada" (change)="validarDataEntrada()" />
         </div>
 
         <div class="field">
@@ -65,6 +65,10 @@
         <div class="period-error">A saída deve acontecer depois da entrada.</div>
       }
 
+      @if (formulario.hasError('dataPassada') && formulario.controls.dataEntrada.touched) {
+        <div class="period-error">Data passada. Escolha uma data atual ou futura.</div>
+      }
+
       @if (previa(); as calculo) {
         <aside class="price-preview" aria-live="polite">
           <div>
@@ -91,5 +95,16 @@
       </button>
     </div>
   </form>
+  }
+
+  @if (avisoDataPassada()) {
+    <div class="modal-backdrop" (click)="avisoDataPassada.set(false)">
+      <section class="date-alert" role="alertdialog" aria-modal="true" aria-labelledby="data-passada" (click)="$event.stopPropagation()">
+        <span class="alert-icon" aria-hidden="true">!</span>
+        <h2 id="data-passada">Data passada</h2>
+        <p>Escolha uma data atual ou futura.</p>
+        <button class="button button-primary" type="button" (click)="avisoDataPassada.set(false)">Entendi</button>
+      </section>
+    </div>
   }
 </section>

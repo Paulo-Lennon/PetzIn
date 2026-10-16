@@ -4,6 +4,7 @@ import { obterConfiguracaoJwt } from '../config/autenticacao';
 import {
   buscarUsuarioPorEmailComSenha,
   buscarUsuarioPorId,
+  buscarUsuarioPorIdComSenha,
   UsuarioRepository,
 } from '../repositories/UsuarioRepository';
 
@@ -35,6 +36,35 @@ export class ErroAcesso extends Error {
     super(mensagem);
     this.name = 'ErroAcesso';
   }
+}
+
+export class ErroSenhaAtual extends Error {
+  constructor() {
+    super('Senha atual incorreta');
+    this.name = 'ErroSenhaAtual';
+  }
+}
+
+function validarSenha(senha: unknown): string {
+  if (typeof senha !== 'string') {
+    throw new ErroValidacao('A senha é obrigatória');
+  }
+
+  if (senha.length < 7 || senha.length > 12) {
+    throw new ErroValidacao('A senha deve conter entre 7 e 12 caracteres');
+  }
+
+  const possuiLetra = /[A-Za-z]/.test(senha);
+  const possuiNumero = /[0-9]/.test(senha);
+  const possuiEspecial = /[^A-Za-z0-9]/.test(senha);
+
+  if (!possuiLetra || !possuiNumero || !possuiEspecial) {
+    throw new ErroValidacao(
+      'A senha deve conter letras, números e pelo menos um caractere especial',
+    );
+  }
+
+  return senha;
 }
 
 export class UsuarioService {
@@ -80,21 +110,8 @@ export class UsuarioService {
       throw new ErroValidacao('Informe um e-mail válido');
     }
 
-    // 4. Verifica o tamanho da senha
-    if (senha.length < 7 || senha.length > 12) {
-      throw new ErroValidacao('A senha deve conter entre 7 e 12 caracteres');
-    }
-
-    // 5. Exige letras, números e caracteres especiais
-    const possuiLetra = /[A-Za-z]/.test(senha);
-    const possuiNumero = /[0-9]/.test(senha);
-    const possuiEspecial = /[^A-Za-z0-9]/.test(senha);
-
-    if (!possuiLetra || !possuiNumero || !possuiEspecial) {
-      throw new ErroValidacao(
-        'A senha deve conter letras, números e pelo menos um caractere especial',
-      );
-    }
+    // 4. Valida os requisitos de segurança da senha.
+    senha = validarSenha(senha);
 
     // 6. Verifica se o e-mail já existe
     const emailExiste = await this.verificarEmail(email);
@@ -179,5 +196,39 @@ export class UsuarioService {
       email: usuario.email,
       criadoEm: usuario.criadoEm,
     };
+  }
+
+  async alterarSenha(
+    usuarioId: string,
+    senhaAtual: unknown,
+    novaSenha: unknown,
+  ): Promise<void> {
+    if (typeof senhaAtual !== 'string' || senhaAtual.length === 0) {
+      throw new ErroValidacao('A senha atual é obrigatória');
+    }
+
+    const senhaValidada = validarSenha(novaSenha);
+
+    if (senhaAtual === senhaValidada) {
+      throw new ErroValidacao('A nova senha deve ser diferente da senha atual');
+    }
+
+    const usuario = await buscarUsuarioPorIdComSenha(usuarioId);
+
+    if (!usuario || !usuario.ativo) {
+      throw new ErroNaoEncontrado('Usuário não encontrado');
+    }
+
+    const senhaAtualCorreta = await bcrypt.compare(
+      senhaAtual,
+      usuario.senhaHash,
+    );
+
+    if (!senhaAtualCorreta) {
+      throw new ErroSenhaAtual();
+    }
+
+    usuario.senhaHash = await bcrypt.hash(senhaValidada, 12);
+    await UsuarioRepository.save(usuario);
   }
 }

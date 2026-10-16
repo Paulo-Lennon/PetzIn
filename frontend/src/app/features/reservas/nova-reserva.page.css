@@ -117,6 +117,41 @@
   text-align: center;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(35 19 18 / 55%);
+  backdrop-filter: blur(3px);
+}
+
+.date-alert {
+  width: min(390px, 100%);
+  border-radius: var(--petzin-radius-md);
+  padding: 1.6rem;
+  background: white;
+  box-shadow: 0 24px 70px rgb(30 13 12 / 30%);
+  text-align: center;
+}
+
+.alert-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 0.8rem;
+  place-items: center;
+  border-radius: 50%;
+  color: #a92330;
+  background: #ffe4e7;
+  font-weight: 900;
+}
+
+.date-alert h2 { margin: 0; }
+.date-alert p { margin: 0.55rem 0 1.25rem; color: var(--petzin-muted); }
+
 .form-actions {
   display: flex;
   justify-content: space-between;

@@ -169,6 +169,19 @@ Resposta `200`:
 }
 ```
 
+### `PATCH /usuarios/me/senha`
+
+Altera a senha da conta administrativa autenticada. Exige o token Bearer e a confirmação da senha atual.
+
+```json
+{
+  "senhaAtual": "SenhaAtual@1",
+  "novaSenha": "NovaSenha@2"
+}
+```
+
+A nova senha deve seguir as mesmas regras do cadastro e ser diferente da senha atual. Retorna `204` em caso de sucesso, `400` para dados inválidos e `401` quando a senha atual estiver incorreta.
+
 ## Tutores
 
 Tutores são clientes responsáveis pelos animais e não possuem credenciais de acesso.
@@ -391,6 +404,8 @@ Conflitos que retornam `409`:
 - O pet já possui uma reserva não cancelada no período.
 
 Reservas encostadas, nas quais uma começa exatamente quando a outra termina, são permitidas.
+
+A entrada deve ocorrer no minuto atual ou no futuro. Datas de entrada passadas retornam `400` com a mensagem `Data passada. Escolha uma data atual ou futura.`
 
 ### `GET /reservas`
 

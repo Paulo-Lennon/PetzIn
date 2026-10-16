@@ -19,11 +19,21 @@ import { calcularPreviaReserva } from './reserva-calculo';
 function validarPeriodo(controle: AbstractControl): ValidationErrors | null {
   const entrada = controle.get('dataEntrada')?.value;
   const saida = controle.get('dataSaida')?.value;
-  if (!entrada || !saida) return null;
+  const erros: ValidationErrors = {};
 
-  return new Date(saida).getTime() > new Date(entrada).getTime()
-    ? null
-    : { periodoInvalido: true };
+  if (entrada) {
+    const inicioMinutoAtual = new Date();
+    inicioMinutoAtual.setSeconds(0, 0);
+    if (new Date(entrada).getTime() < inicioMinutoAtual.getTime()) {
+      erros['dataPassada'] = true;
+    }
+  }
+
+  if (entrada && saida && new Date(saida).getTime() <= new Date(entrada).getTime()) {
+    erros['periodoInvalido'] = true;
+  }
+
+  return Object.keys(erros).length ? erros : null;
 }
 
 function paraDataHoraLocal(valor: string): string {
@@ -47,10 +57,12 @@ export class NovaReservaPage implements OnInit {
 
   protected readonly reservaId = this.route.snapshot.paramMap.get('id');
   protected readonly editando = Boolean(this.reservaId);
+  protected readonly dataMinima = paraDataHoraLocal(new Date().toISOString());
   protected readonly pets = signal<Pet[]>([]);
   protected readonly carregando = signal(this.editando);
   protected readonly salvando = signal(false);
   protected readonly erro = signal<string | null>(null);
+  protected readonly avisoDataPassada = signal(false);
   protected readonly tarifaHora = signal(10);
   protected readonly tarifaDiaria = signal(240);
   protected readonly formulario = this.formBuilder.nonNullable.group(
@@ -87,6 +99,13 @@ export class NovaReservaPage implements OnInit {
   }
 
   protected salvar(): void {
+    this.formulario.updateValueAndValidity();
+    if (this.formulario.hasError('dataPassada')) {
+      this.formulario.controls.dataEntrada.markAsTouched();
+      this.avisoDataPassada.set(true);
+      return;
+    }
+
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       return;
@@ -114,6 +133,13 @@ export class NovaReservaPage implements OnInit {
         error: (error: HttpErrorResponse) =>
           this.erro.set(error.error?.mensagem ?? 'Não foi possível salvar a reserva.'),
       });
+  }
+
+  protected validarDataEntrada(): void {
+    this.formulario.updateValueAndValidity();
+    if (this.formulario.hasError('dataPassada')) {
+      this.avisoDataPassada.set(true);
+    }
   }
 
   protected previa() {

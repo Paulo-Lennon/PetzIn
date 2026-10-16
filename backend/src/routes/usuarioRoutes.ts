@@ -18,6 +18,11 @@ router.get('/usuarios/me', autenticarToken, (req, res) => {
   void usuarioController.perfil(req, res);
 });
 
+// Altera a senha da conta administrativa autenticada.
+router.patch('/usuarios/me/senha', autenticarToken, (req, res) => {
+  void usuarioController.alterarSenha(req, res);
+});
+
 // Define a rota para cadastrar usuários
 router.post('/usuarios', (req, res) => {
   void usuarioController.cadastrar(req, res);

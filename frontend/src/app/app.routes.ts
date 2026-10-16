@@ -109,6 +109,14 @@ export const routes: Routes = [
             (modulo) => modulo.FinanceiroPage,
           ),
       },
+      {
+        path: 'configuracoes/senha',
+        title: 'Alterar senha | PetzIn',
+        loadComponent: () =>
+          import('./features/configuracoes/alterar-senha.page').then(
+            (modulo) => modulo.AlterarSenhaPage,
+          ),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },
