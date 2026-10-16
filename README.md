@@ -49,15 +49,32 @@ PostgreSQL — postgres:5432
 
 O backend segue a separação `Routes → Controllers → Services → Repositories → Entities`. As regras de negócio permanecem nos serviços, enquanto controllers tratam requisições e respostas HTTP.
 
-## Modelagem e integridade
+## Documentação da análise
+
+### Problemas do modelo inicial
+
+O rascunho apresentado no desafio armazenava dados do tutor, de vários pets e da hospedagem em um único registro de reserva. Embora simples para uma planilha, esse formato não preserva corretamente a identidade e o histórico das entidades.
+
+| Problema identificado | Consequência | Solução adotada |
+| --- | --- | --- |
+| Nome e telefone do tutor repetidos em cada reserva | Uma alteração de telefone exigiria atualizar várias linhas e poderia gerar versões conflitantes do mesmo tutor. | Entidade `Tutor` própria, referenciada pelos pets. |
+| Vários pets concatenados em `nome_do_pet` | Não é possível identificar, editar ou consultar o histórico de cada animal individualmente. | Uma entidade `Pet` por animal e uma reserva individual por pet. |
+| Raças concatenadas em `raca_do_pet` | A associação entre nome e raça depende da posição no texto e não possui integridade. | A raça pertence diretamente ao registro do pet correspondente. |
+| Dados do tutor e do pet gravados como cópias na reserva | Duplicação, desperdício e risco de divergência cadastral. | Relacionamentos por chaves estrangeiras. |
+| Apenas `valor_total_pago` | Não diferencia valor calculado, valor recebido, saldo e situação do pagamento. | `valorTotal`, `valorPago`, `statusPagamento` e `pagoEm`. |
+| Ausência de status da hospedagem | Não permite distinguir reserva agendada, em andamento, concluída ou cancelada. | Status controlado e transições validadas pelo backend. |
+| Ausência de regras contra sobreposição | O mesmo pet ou canil poderia receber reservas simultâneas. | Verificação de conflito antes de cadastrar ou editar uma reserva. |
+| Datas sem horário e fuso explícitos | Impede cobrança por hora e pode produzir interpretações diferentes entre sistemas. | API utiliza data e hora ISO 8601 com fuso; o frontend converte os campos antes do envio. |
+
+Se Carlos alterar o telefone, somente o registro do tutor será atualizado. Todas as consultas futuras apresentarão o novo número sem modificar as reservas existentes. Como Rex possui um registro próprio e cada reserva aponta para o seu identificador, o histórico do animal pode ser pesquisado individualmente, sem depender de texto concatenado.
+
+### Modelagem adotada
 
 ```text
 Usuario (administração)
 
 Tutor 1 ───── N Pet 1 ───── N Reserva
 ```
-
-O modelo inicial do desafio repetia nome e telefone do tutor e agrupava vários animais no mesmo campo da reserva. Isso provocaria inconsistências quando um telefone fosse alterado, duplicação de informações e impossibilidade de consultar individualmente o histórico de um pet.
 
 No modelo corrigido:
 
@@ -179,17 +196,63 @@ docker compose up -d
 
 > Atenção: `docker compose down -v` também remove o volume do PostgreSQL e apaga os dados locais.
 
-## Execução local para desenvolvimento
+## Instalação e execução local para desenvolvimento
 
-É possível executar apenas o banco no Docker e manter frontend e backend com recarregamento automático.
+Esta opção mantém somente o PostgreSQL no Docker. Backend e frontend são executados pelo Node.js com recarregamento automático.
 
-### Banco
+### Pré-requisitos locais
+
+- Git.
+- Node.js 22 ou superior.
+- npm 11 ou superior.
+- Docker Desktop com Docker Compose, utilizado para o PostgreSQL.
+- Portas `4200`, `3000` e `5433` disponíveis.
+
+### 1. Clone o repositório
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd PetzIn
+```
+
+Todos os comandos seguintes consideram que o terminal está inicialmente na raiz `PetzIn`.
+
+### 2. Configure as variáveis de ambiente
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Linux ou macOS:
+
+```bash
+cp .env.example .env
+```
+
+O backend procura esse arquivo na raiz do projeto. Não mova o `.env` para dentro de `backend/` e nunca envie esse arquivo ao Git.
+
+### 3. Inicie somente o PostgreSQL
+
+Se a aplicação completa estiver ativa, encerre-a primeiro para evitar conflitos de portas:
+
+```bash
+docker compose down
+```
+
+Depois inicie apenas o banco:
 
 ```bash
 docker compose up -d postgres
+docker compose ps
 ```
 
-### Backend
+O serviço `petzin-postgres` deverá aparecer como `healthy` e estará acessível localmente pela porta `5433`.
+
+### 4. Instale, prepare e execute o backend
+
+Abra um terminal na raiz do projeto:
 
 ```bash
 cd backend
@@ -198,11 +261,39 @@ npm run migration:run
 npm run dev
 ```
 
-API disponível em `http://localhost:3000`.
+O comando `npm ci` instala exatamente as versões registradas no `package-lock.json`. Em seguida, as migrations criam ou atualizam as tabelas. Mantenha esse terminal aberto; a API ficará disponível em `http://localhost:3000`.
 
-### Frontend
+Confirme em outro terminal ou no navegador:
 
-Em outro terminal:
+```text
+http://localhost:3000/health
+```
+
+A resposta deverá conter `"status":"ok"`.
+
+### 5. Crie o primeiro administrador em um banco vazio
+
+Com o backend em execução, abra outro PowerShell na raiz e execute:
+
+```powershell
+$corpo = @{
+  nome = "Administrador PetzIn"
+  email = "admin@petzin.local"
+  senha = "PetzIn@123"
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:3000/usuarios" `
+  -ContentType "application/json" `
+  -Body $corpo
+```
+
+Esse passo é necessário apenas uma vez para cada banco novo. Se a API responder que o administrador já foi cadastrado, utilize a conta criada anteriormente.
+
+### 6. Instale e execute o frontend
+
+Abra um terceiro terminal na raiz do projeto:
 
 ```bash
 cd frontend
@@ -210,7 +301,32 @@ npm ci
 npm start
 ```
 
-Interface disponível em `http://localhost:4200`. O proxy de desenvolvimento encaminha `/api` para a API local.
+Mantenha o terminal aberto e acesse:
+
+```text
+http://localhost:4200
+```
+
+O Angular encaminha automaticamente as chamadas `/api` para `http://localhost:3000` por meio de `proxy.conf.json`.
+
+### 7. Entre no sistema
+
+Use o e-mail e a senha definidos no passo 5. Para encerrar o ambiente local:
+
+1. Pressione `Ctrl+C` nos terminais do frontend e do backend.
+2. Na raiz do projeto, pare o banco sem remover os dados:
+
+```bash
+docker compose stop postgres
+```
+
+### Solução de problemas comuns
+
+- **Porta já em uso:** encerre processos ou contêineres que estejam utilizando `4200`, `3000` ou `5433`.
+- **Banco não conecta:** execute `docker compose ps` e aguarde o PostgreSQL ficar `healthy`.
+- **Login retorna credenciais inválidas:** confirme que o primeiro administrador foi criado no mesmo banco atualmente em execução.
+- **Alterações de schema não aparecem:** execute novamente `npm run migration:run` dentro de `backend/`.
+- **Deseja recriar o banco:** `docker compose down -v` remove permanentemente os dados locais; depois repita os passos de inicialização e criação do administrador.
 
 ## Testes e builds
 
