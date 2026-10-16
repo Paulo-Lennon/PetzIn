@@ -80,6 +80,18 @@ export class ReservaController {
     }
   }
 
+  async registrarPagamento(req: Request, res: Response): Promise<void> {
+    try {
+      const reserva = await reservaService.registrarPagamento(
+        req.params.id,
+        req.body?.valorPago,
+      );
+      res.status(200).json(reserva);
+    } catch (error) {
+      this.tratarErro(error, res, 'registrar o pagamento da');
+    }
+  }
+
   async cancelar(req: Request, res: Response): Promise<void> {
     try {
       await reservaService.cancelar(req.params.id);

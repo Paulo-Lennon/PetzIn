@@ -7,6 +7,7 @@ import app from '../app';
 import { AppDataSource } from '../config/database';
 import {
   ModalidadeCobranca,
+  StatusPagamento,
   StatusReserva,
 } from '../entities/Reserva';
 import { PetRepository } from '../repositories/PetRepository';
@@ -84,13 +85,15 @@ afterAll(async () => {
 
 describe('API administrativa de reservas', () => {
   it('protege as rotas com JWT', async () => {
-    const [cadastro, listagem] = await Promise.all([
+    const [cadastro, listagem, financeiro] = await Promise.all([
       request(app).post('/reservas').send({}),
       request(app).get('/reservas'),
+      request(app).get('/financeiro/resumo'),
     ]);
 
     expect(cadastro.status).toBe(401);
     expect(listagem.status).toBe(401);
+    expect(financeiro.status).toBe(401);
   });
 
   it.each([
@@ -168,6 +171,8 @@ describe('API administrativa de reservas', () => {
       tarifaHora: 10,
       tarifaDiaria: 240,
       valorTotal: 500,
+      valorPago: 0,
+      statusPagamento: StatusPagamento.PENDENTE,
       status: StatusReserva.AGENDADA,
       observacoes: 'Levar a caminha do pet.',
     });
@@ -281,7 +286,114 @@ describe('API administrativa de reservas', () => {
     expect(conclusao.body.status).toBe(StatusReserva.CONCLUIDA);
   });
 
-  it('cancela uma reserva sem apagar o histórico', async () => {
+  it('registra pagamento parcial e pagamento total', async () => {
+    const parcial = await request(app)
+      .patch(`/reservas/${reservaDiariaId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 100 });
+    const total = await request(app)
+      .patch(`/reservas/${reservaHoraId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 30 });
+
+    expect(parcial.status).toBe(200);
+    expect(parcial.body).toMatchObject({
+      valorPago: 100,
+      statusPagamento: StatusPagamento.PARCIAL,
+      pagoEm: null,
+    });
+    expect(total.status).toBe(200);
+    expect(total.body).toMatchObject({
+      valorPago: 30,
+      statusPagamento: StatusPagamento.PAGO,
+    });
+    expect(total.body.pagoEm).toEqual(expect.any(String));
+  });
+
+  it('rejeita valor pago acima do total da reserva', async () => {
+    const resposta = await request(app)
+      .patch(`/reservas/${reservaHoraId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 30.01 });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body).toEqual({
+      mensagem: 'Valor pago não pode ser maior que o valor total da reserva',
+    });
+  });
+
+  it('volta o pagamento para parcial quando o valor da reserva aumenta', async () => {
+    const cadastro = await request(app)
+      .post('/reservas')
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({
+        petId: outroPetId,
+        dataEntrada: '2031-01-01T08:00:00-04:00',
+        dataSaida: '2031-01-01T09:00:00-04:00',
+        numeroCanil: 6,
+        modalidade: 'HORA',
+      });
+    const reservaId = cadastro.body.id;
+
+    const pagamento = await request(app)
+      .patch(`/reservas/${reservaId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 10 });
+    const ampliacao = await request(app)
+      .put(`/reservas/${reservaId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ dataSaida: '2031-01-01T10:00:00-04:00' });
+
+    expect(pagamento.body.statusPagamento).toBe(StatusPagamento.PAGO);
+    expect(ampliacao.status).toBe(200);
+    expect(ampliacao.body).toMatchObject({
+      valorTotal: 20,
+      valorPago: 10,
+      statusPagamento: StatusPagamento.PARCIAL,
+      pagoEm: null,
+    });
+
+    await request(app)
+      .patch(`/reservas/${reservaId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 0 });
+    await request(app)
+      .delete(`/reservas/${reservaId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+  });
+
+  it('apresenta o resumo financeiro por período de entrada', async () => {
+    const resposta = await request(app)
+      .get('/financeiro/resumo')
+      .query({
+        dataInicio: '2030-01-01T00:00:00-04:00',
+        dataFim: '2030-01-04T00:00:00-04:00',
+      })
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toMatchObject({
+      totalPrevisto: 530,
+      totalRecebido: 130,
+      totalPendente: 400,
+      quantidadeReservas: 2,
+      quantidadeCanceladas: 0,
+      pagamentos: {
+        pendentes: 0,
+        parciais: 1,
+        pagos: 1,
+      },
+    });
+  });
+
+  it('exige zerar o pagamento antes de cancelar e preserva o histórico', async () => {
+    const bloqueio = await request(app)
+      .delete(`/reservas/${reservaDiariaId}`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+    const estorno = await request(app)
+      .patch(`/reservas/${reservaDiariaId}/pagamento`)
+      .set('Authorization', `Bearer ${tokenAdministrativo}`)
+      .send({ valorPago: 0 });
     const cancelamento = await request(app)
       .delete(`/reservas/${reservaDiariaId}`)
       .set('Authorization', `Bearer ${tokenAdministrativo}`);
@@ -289,7 +401,36 @@ describe('API administrativa de reservas', () => {
       id: reservaDiariaId,
     });
 
+    expect(bloqueio.status).toBe(409);
+    expect(bloqueio.body).toEqual({
+      mensagem: 'Não é possível cancelar uma reserva com valor pago',
+    });
+    expect(estorno.status).toBe(200);
+    expect(estorno.body).toMatchObject({
+      valorPago: 0,
+      statusPagamento: StatusPagamento.PENDENTE,
+      pagoEm: null,
+    });
     expect(cancelamento.status).toBe(204);
     expect(reservaPersistida.status).toBe(StatusReserva.CANCELADA);
+  });
+
+  it('exclui reservas canceladas dos totais financeiros', async () => {
+    const resposta = await request(app)
+      .get('/financeiro/resumo')
+      .query({
+        dataInicio: '2030-01-01T00:00:00-04:00',
+        dataFim: '2030-01-04T00:00:00-04:00',
+      })
+      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toMatchObject({
+      totalPrevisto: 30,
+      totalRecebido: 30,
+      totalPendente: 0,
+      quantidadeReservas: 1,
+      quantidadeCanceladas: 1,
+    });
   });
 });

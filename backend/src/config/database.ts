@@ -9,6 +9,7 @@ import { Usuario } from '../entities/Usuario';
 import { CriarTabelaUsuarios1792092861341 } from '../migrations/1792092861341-CriarTabelaUsuarios';
 import { AdicionarEstruturaPets1792096000000 } from '../migrations/1792096000000-AdicionarEstruturaPets';
 import { AdicionarReservas1792182400000 } from '../migrations/1792182400000-AdicionarReservas';
+import { AdicionarControleFinanceiro1792186000000 } from '../migrations/1792186000000-AdicionarControleFinanceiro';
 
 dotenv.config({
   path: path.resolve(process.cwd(), '../.env'),
@@ -38,5 +39,6 @@ export const AppDataSource = new DataSource({
     CriarTabelaUsuarios1792092861341,
     AdicionarEstruturaPets1792096000000,
     AdicionarReservas1792182400000,
+    AdicionarControleFinanceiro1792186000000,
   ],
 });

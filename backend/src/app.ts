@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { tratarErros } from './middlewares/tratamentoErros';
+import financeiroRoutes from './routes/financeiroRoutes';
 import petRoutes from './routes/petRoutes';
 import reservaRoutes from './routes/reservaRoutes';
 import tutorRoutes from './routes/tutorRoutes';
@@ -14,6 +15,7 @@ app.use(express.json());
 
 // Registra as rotas de usuários
 app.use(usuarioRoutes);
+app.use(financeiroRoutes);
 app.use(tutorRoutes);
 app.use(petRoutes);
 app.use(reservaRoutes);

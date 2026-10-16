@@ -25,6 +25,10 @@ router.patch('/reservas/:id/status', autenticarToken, (req, res) => {
   void reservaController.alterarStatus(req, res);
 });
 
+router.patch('/reservas/:id/pagamento', autenticarToken, (req, res) => {
+  void reservaController.registrarPagamento(req, res);
+});
+
 router.delete('/reservas/:id', autenticarToken, (req, res) => {
   void reservaController.cancelar(req, res);
 });

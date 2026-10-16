@@ -28,6 +28,12 @@ export enum StatusReserva {
   CANCELADA = 'CANCELADA',
 }
 
+export enum StatusPagamento {
+  PENDENTE = 'PENDENTE',
+  PARCIAL = 'PARCIAL',
+  PAGO = 'PAGO',
+}
+
 @Entity('reservas')
 @Index('IDX_reservas_pet_id', ['petId'])
 @Index('IDX_reservas_canil_periodo', [
@@ -36,6 +42,7 @@ export enum StatusReserva {
   'dataSaida',
 ])
 @Index('IDX_reservas_status', ['status'])
+@Index('IDX_reservas_status_pagamento', ['statusPagamento'])
 export class Reserva {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -85,6 +92,25 @@ export class Reserva {
     transformer: transformarDecimal,
   })
   valorTotal!: number;
+
+  @Column({
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    transformer: transformarDecimal,
+  })
+  valorPago!: number;
+
+  @Column({
+    type: 'enum',
+    enum: StatusPagamento,
+    default: StatusPagamento.PENDENTE,
+  })
+  statusPagamento!: StatusPagamento;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  pagoEm!: Date | null;
 
   @Column({
     type: 'enum',

@@ -1,5 +1,6 @@
 import {
   ModalidadeCobranca,
+  StatusPagamento,
   StatusReserva,
 } from '../entities/Reserva';
 import { PetRepository } from '../repositories/PetRepository';
@@ -141,6 +142,27 @@ function validarStatus(valor: unknown): StatusReserva {
   }
 
   return status;
+}
+
+function validarValorPago(valor: unknown, valorTotal: number): number {
+  if (
+    typeof valor !== 'number' ||
+    !Number.isFinite(valor) ||
+    valor < 0 ||
+    Number(valor.toFixed(2)) !== valor
+  ) {
+    throw new ErroValidacaoReserva(
+      'Valor pago deve ser um número não negativo com até duas casas decimais',
+    );
+  }
+
+  if (valor > valorTotal) {
+    throw new ErroValidacaoReserva(
+      'Valor pago não pode ser maior que o valor total da reserva',
+    );
+  }
+
+  return valor;
 }
 
 export function calcularValorReserva(
@@ -367,13 +389,32 @@ export class ReservaService {
     reserva.dataSaida = dataSaida;
     reserva.numeroCanil = numeroCanil;
     reserva.modalidade = modalidade;
-    reserva.valorTotal = calcularValorReserva(
+    const novoValorTotal = calcularValorReserva(
       modalidade,
       dataEntrada,
       dataSaida,
       reserva.tarifaHora,
       reserva.tarifaDiaria,
     );
+
+    if (reserva.valorPago > novoValorTotal) {
+      throw new ErroConflitoReserva(
+        'O novo valor total não pode ser menor que o valor já pago',
+      );
+    }
+
+    reserva.valorTotal = novoValorTotal;
+
+    if (reserva.valorPago === 0) {
+      reserva.statusPagamento = StatusPagamento.PENDENTE;
+      reserva.pagoEm = null;
+    } else if (reserva.valorPago < novoValorTotal) {
+      reserva.statusPagamento = StatusPagamento.PARCIAL;
+      reserva.pagoEm = null;
+    } else {
+      reserva.statusPagamento = StatusPagamento.PAGO;
+      reserva.pagoEm ??= new Date();
+    }
 
     if (Object.prototype.hasOwnProperty.call(dados, 'observacoes')) {
       reserva.observacoes = validarObservacoes(dados.observacoes);
@@ -413,7 +454,51 @@ export class ReservaService {
       );
     }
 
+    if (
+      novoStatus === StatusReserva.CANCELADA &&
+      reserva.valorPago > 0
+    ) {
+      throw new ErroConflitoReserva(
+        'Não é possível cancelar uma reserva com valor pago',
+      );
+    }
+
     reserva.status = novoStatus;
+    return ReservaRepository.save(reserva);
+  }
+
+  async registrarPagamento(idInformado: unknown, valorInformado: unknown) {
+    const id = validarUuid(
+      idInformado,
+      'Informe um identificador de reserva válido',
+    );
+    const reserva = await ReservaRepository.findOneBy({ id });
+
+    if (!reserva) {
+      throw new ErroReservaNaoEncontrada();
+    }
+
+    if (reserva.status === StatusReserva.CANCELADA) {
+      throw new ErroConflitoReserva(
+        'Não é possível registrar pagamento em uma reserva cancelada',
+      );
+    }
+
+    const valorPago = validarValorPago(valorInformado, reserva.valorTotal);
+
+    reserva.valorPago = valorPago;
+
+    if (valorPago === 0) {
+      reserva.statusPagamento = StatusPagamento.PENDENTE;
+      reserva.pagoEm = null;
+    } else if (valorPago < reserva.valorTotal) {
+      reserva.statusPagamento = StatusPagamento.PARCIAL;
+      reserva.pagoEm = null;
+    } else {
+      reserva.statusPagamento = StatusPagamento.PAGO;
+      reserva.pagoEm = new Date();
+    }
+
     return ReservaRepository.save(reserva);
   }
 
