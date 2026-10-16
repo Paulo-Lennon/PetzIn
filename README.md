@@ -249,11 +249,9 @@ Confirme que o Docker Desktop está aberto e que as portas `8080`, `3000` e `543
 ### 1. Clone o repositório
 
 ```bash
-git clone <URL_PUBLICA_DO_REPOSITORIO>
+git clone https://github.com/Paulo-Lennon/PetzIn.git
 cd PetzIn
 ```
-
-Substitua `<URL_PUBLICA_DO_REPOSITORIO>` pela URL publicada no GitHub.
 
 ### 2. Crie o arquivo de configuração
 
@@ -405,7 +403,7 @@ Neste modo, somente o PostgreSQL fica no Docker. Backend e frontend são executa
 ### 1. Clone e configure o ambiente
 
 ```bash
-git clone <URL_PUBLICA_DO_REPOSITORIO>
+git clone https://github.com/Paulo-Lennon/PetzIn.git
 cd PetzIn
 ```
 
