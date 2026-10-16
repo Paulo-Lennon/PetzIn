@@ -15,9 +15,9 @@
 
 .login-card {
   display: grid;
-  width: min(940px, 100%);
-  min-height: 610px;
-  grid-template-columns: 1.08fr 0.92fr;
+  width: min(1080px, 100%);
+  min-height: 680px;
+  grid-template-columns: 1.12fr 0.88fr;
   overflow: hidden;
   border: 1px solid rgb(116 29 43 / 8%);
   border-radius: var(--petzin-radius-lg);
@@ -32,70 +32,58 @@
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
-  padding: 2.2rem;
+  padding: 2.2rem 2.5rem 0;
   color: white;
-  background:
-    linear-gradient(180deg, rgb(61 28 24 / 4%), rgb(47 20 17 / 82%)),
-    linear-gradient(135deg, #d8a46f, #8e5a3d 58%, #4a2923);
+  background-image: url('/images/login-pets.png');
+  background-position: center center;
+  background-size: cover;
 }
 
 .brand {
   position: relative;
   z-index: 2;
   display: grid;
-  width: max-content;
+  width: 100%;
   justify-items: center;
   color: #5b1723;
+  text-align: center;
+  text-shadow: 0 1px 8px rgb(255 245 231 / 45%);
 }
 
-.brand span {
-  font-size: 2.2rem;
+.brand-paw {
+  width: 62px;
+  height: 62px;
+  fill: currentColor;
 }
 
 .brand strong {
-  font-family: Georgia, serif;
-  font-size: 2.4rem;
+  margin-top: 0.25rem;
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 1;
 }
 
 .brand small {
+  margin-top: 0.7rem;
   color: #421d1c;
+  font-size: 1.16rem;
+  font-weight: 600;
 }
 
-.pet-illustration {
-  position: absolute;
-  inset: 23% -8% 14% 8%;
-  opacity: 0.9;
-}
-
-.pet-shape {
-  position: absolute;
-  border-radius: 45% 55% 40% 60%;
-  filter: blur(1px);
-}
-
-.pet-shape-one {
-  inset: 10% 30% 0 0;
-  background: linear-gradient(145deg, #e7bd88, #9b5b34);
-}
-
-.pet-shape-two {
-  inset: 36% 0 0 48%;
-  background: linear-gradient(145deg, #c7a27d, #5d392d);
-}
-
-.paw {
-  position: absolute;
-  inset: 44% auto auto 44%;
-  font-size: 5rem;
-  filter: grayscale(1) brightness(2.2);
-}
-
-.welcome-panel > p {
+.login-slogan {
   position: relative;
   z-index: 2;
-  max-width: 14rem;
+  margin: 0 -2.5rem;
+  padding: 1.6rem 2.5rem 1.8rem;
+  background: linear-gradient(90deg, rgb(74 35 20 / 78%), rgb(82 42 26 / 60%));
+  backdrop-filter: blur(2px);
+}
+
+.login-slogan p {
+  max-width: 21rem;
   margin: 0;
-  font-size: 1.35rem;
+  font-size: clamp(1.45rem, 3vw, 2rem);
   line-height: 1.35;
 }
 
@@ -104,15 +92,6 @@
   flex-direction: column;
   justify-content: center;
   padding: clamp(2rem, 6vw, 4.5rem);
-}
-
-.eyebrow {
-  margin: 0 0 0.45rem;
-  color: var(--petzin-wine-700);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 h1 {
@@ -153,9 +132,7 @@ form .button {
 }
 
 @media (max-width: 760px) {
-  .login-page {
-    padding: 0;
-  }
+  .login-page { padding: 0; }
 
   .login-card {
     min-height: 100vh;
@@ -165,20 +142,20 @@ form .button {
   }
 
   .welcome-panel {
-    min-height: 210px;
-    padding: 1.5rem;
+    min-height: 340px;
+    padding: 1.25rem 1.5rem 0;
+    background-position: center 58%;
   }
 
-  .pet-illustration {
-    inset: 10% -20% -40% 45%;
+  .brand-paw { width: 44px; height: 44px; }
+  .brand strong { font-size: 2.2rem; }
+  .brand small { margin-top: 0.35rem; font-size: 0.9rem; }
+
+  .login-slogan {
+    margin: 0 -1.5rem;
+    padding: 0.9rem 1.5rem 1rem;
   }
 
-  .welcome-panel > p {
-    max-width: 18rem;
-    font-size: 1rem;
-  }
-
-  .form-panel {
-    padding: 2rem 1.5rem;
-  }
+  .login-slogan p { font-size: 1.15rem; }
+  .form-panel { padding: 2rem 1.5rem; }
 }

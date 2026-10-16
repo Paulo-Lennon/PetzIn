@@ -13,12 +13,12 @@ export class AdminLayoutComponent {
   protected readonly menuAberto = signal(false);
 
   protected readonly navegacao = [
-    { rota: '/dashboard', icone: '⌂', texto: 'Dashboard' },
-    { rota: '/reservas', icone: '▣', texto: 'Reservas' },
-    { rota: '/pets', icone: '●', texto: 'Pets' },
-    { rota: '/tutores', icone: '♙', texto: 'Clientes (Tutores)' },
-    { rota: '/financeiro', icone: '▥', texto: 'Financeiro' },
-    { rota: '/configuracoes/senha', icone: '⚙', texto: 'Configurações' },
+    { rota: '/dashboard', icone: 'dashboard', texto: 'Dashboard' },
+    { rota: '/reservas', icone: 'reservas', texto: 'Reservas' },
+    { rota: '/pets', icone: 'pets', texto: 'Pets' },
+    { rota: '/tutores', icone: 'tutores', texto: 'Clientes (Tutores)' },
+    { rota: '/financeiro', icone: 'financeiro', texto: 'Financeiro' },
+    { rota: '/configuracoes/senha', icone: 'configuracoes', texto: 'Configurações' },
   ];
 
   protected alternarMenu(): void {
