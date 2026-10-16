@@ -28,5 +28,5 @@ export const AppDataSource = new DataSource({
 
   entities: [Usuario],
 
-  migrations: ['src/migrations/*.ts'],
+  migrations: [path.resolve(__dirname, '../migrations/*.{js,ts}')],
 });

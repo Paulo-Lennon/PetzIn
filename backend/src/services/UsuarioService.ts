@@ -1,11 +1,32 @@
 import bcrypt from 'bcrypt';
-import { UsuarioRepository } from '../repositories/UsuarioRepository';
+import jwt from 'jsonwebtoken';
+import { obterConfiguracaoJwt } from '../config/autenticacao';
+import {
+  buscarUsuarioPorEmailComSenha,
+  buscarUsuarioPorId,
+  UsuarioRepository,
+} from '../repositories/UsuarioRepository';
 
 // Erro específico para dados inválidos
 export class ErroValidacao extends Error {
   constructor(mensagem: string) {
     super(mensagem);
     this.name = 'ErroValidacao';
+  }
+}
+
+// Erro genérico para não revelar se o e-mail está cadastrado.
+export class ErroAutenticacao extends Error {
+  constructor() {
+    super('E-mail ou senha inválidos');
+    this.name = 'ErroAutenticacao';
+  }
+}
+
+export class ErroNaoEncontrado extends Error {
+  constructor(mensagem: string) {
+    super(mensagem);
+    this.name = 'ErroNaoEncontrado';
   }
 }
 
@@ -88,6 +109,62 @@ export class UsuarioService {
       nome: usuarioSalvo.nome,
       email: usuarioSalvo.email,
       criadoEm: usuarioSalvo.criadoEm,
+    };
+  }
+
+  // Autentica o usuário e gera um token JWT com tempo de expiração.
+  async autenticar(email: string, senha: string) {
+    if (typeof email !== 'string' || typeof senha !== 'string') {
+      throw new ErroValidacao('E-mail e senha são obrigatórios');
+    }
+
+    email = email.trim().toLowerCase();
+
+    if (email.length === 0 || senha.length === 0) {
+      throw new ErroValidacao('E-mail e senha são obrigatórios');
+    }
+
+    const usuario = await buscarUsuarioPorEmailComSenha(email);
+
+    if (!usuario) {
+      throw new ErroAutenticacao();
+    }
+
+    const senhaCorreta = await bcrypt.compare(senha, usuario.senhaHash);
+
+    if (!senhaCorreta) {
+      throw new ErroAutenticacao();
+    }
+
+    const { segredo, expiracao } = obterConfiguracaoJwt();
+    const token = jwt.sign({}, segredo, {
+      subject: usuario.id,
+      expiresIn: expiracao,
+    });
+
+    return {
+      token,
+      usuario: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        criadoEm: usuario.criadoEm,
+      },
+    };
+  }
+
+  async buscarPerfil(usuarioId: string) {
+    const usuario = await buscarUsuarioPorId(usuarioId);
+
+    if (!usuario) {
+      throw new ErroNaoEncontrado('Usuário não encontrado');
+    }
+
+    return {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      criadoEm: usuario.criadoEm,
     };
   }
 }

@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
 import { AppDataSource } from './config/database';
+import { tratarErros } from './middlewares/tratamentoErros';
 import usuarioRoutes from './routes/usuarioRoutes';
 
 const app = express();
@@ -19,6 +20,9 @@ app.get('/health', (_req, res) => {
     message: 'API PetzIn funcionando!',
   });
 });
+
+// Padroniza erros que não foram tratados pelas rotas e controllers.
+app.use(tratarErros);
 
 const PORT = 3000;
 
