@@ -1,118 +1,263 @@
-# PetzIn — Gestão de hospedagem de pets
+# PetzIn
 
-Aplicação web full stack desenvolvida para o desafio técnico de Desenvolvedor Full Stack Júnior do Instituto Conecthus. O PetzIn substitui controles em planilhas por uma solução centralizada para tutores, pets, reservas, hospedagens e pagamentos.
+Sistema web para administração de um hotel e creche de animais. A aplicação permite que a proprietária do estabelecimento gerencie tutores, pets, reservas, hospedagens e pagamentos em um único lugar.
 
-## Funcionalidades
+## Sumário
 
-- Autenticação administrativa com JWT e alteração de senha.
-- Rotas protegidas e encerramento automático da sessão em respostas não autorizadas.
-- Cadastro, edição, listagem e desativação de tutores.
-- Cadastro, edição, listagem e desativação de pets.
+1. [O que foi implementado](#o-que-foi-implementado)
+2. [Tecnologias e motivos das escolhas](#tecnologias-e-motivos-das-escolhas)
+3. [Arquitetura da aplicação](#arquitetura-da-aplicação)
+4. [Documentação da análise](#documentação-da-análise)
+5. [Como executar com Docker](#como-executar-com-docker)
+6. [Como executar em modo de desenvolvimento](#como-executar-em-modo-de-desenvolvimento)
+7. [Como executar os testes](#como-executar-os-testes)
+8. [Documentação da API](#documentação-da-api)
+9. [Solução de problemas](#solução-de-problemas)
+
+## O que foi implementado
+
+### Autenticação
+
+- Cadastro da primeira conta administrativa.
+- Login com e-mail e senha.
+- Senha protegida com hash bcrypt.
+- Autenticação por JSON Web Token (JWT).
+- Proteção das rotas administrativas.
+- Alteração de senha pela interface.
+- Encerramento da sessão quando o token deixa de ser válido.
+
+### Tutores
+
+- Cadastro de tutor.
+- Listagem dos tutores ativos.
+- Consulta por identificador.
+- Edição dos dados de contato.
+- Desativação com validação de vínculos ativos.
+
+### Pets
+
+- Cadastro de pet associado a um tutor.
+- Listagem e consulta individual.
+- Edição cadastral.
+- Foto por URL pública.
+- Registro de espécie, raça, sexo, nascimento, peso e observações.
+- Desativação com preservação do histórico.
+
+### Reservas e hospedagens
+
 - Uma reserva individual para cada pet.
-- Criação, edição, consulta, cancelamento e alteração de status das reservas.
-- Bloqueio de reservas em datas passadas e de períodos inválidos.
-- Prevenção de reservas simultâneas para o mesmo pet ou canil.
-- Cálculo automático por hora ou diária, com arredondamento de horas excedentes.
-- Registro de pagamentos pendentes, parciais e integrais.
+- Criação, listagem, consulta e edição de reservas.
+- Estados `AGENDADA`, `EM_ANDAMENTO`, `CONCLUIDA` e `CANCELADA`.
+- Bloqueio de entrada em data passada.
+- Validação de saída posterior à entrada.
+- Bloqueio de sobreposição para o mesmo pet.
+- Bloqueio de sobreposição para o mesmo canil.
+- Cancelamento com preservação do registro histórico.
+
+### Cobrança e financeiro
+
+- Cálculo automático por hora ou diária.
+- Hora no valor de **R$ 10,00**.
+- Diária de 24 horas no valor de **R$ 240,00**.
+- Arredondamento de qualquer fração para a hora seguinte.
+- Combinação de múltiplas diárias com horas excedentes.
+- Pagamentos pendentes, parciais e integrais.
 - Resumo financeiro por período.
-- Dashboard administrativo responsivo.
-- Deploy local completo com Docker Compose.
+- Preservação das tarifas aplicadas no momento da reserva.
 
-## Tecnologias e escolhas
+### Interface
 
-| Camada | Tecnologias | Motivo |
-| --- | --- | --- |
-| Frontend | Angular 21, TypeScript, Reactive Forms e CSS | Componentização, tipagem, formulários robustos e rotas protegidas. |
-| Backend | Node.js, Express 5 e TypeScript | API REST simples, tipada e organizada em camadas. |
-| Persistência | PostgreSQL 17 e TypeORM | Integridade relacional, migrations e tipos adequados para valores financeiros. |
-| Segurança | JWT e bcrypt | Autenticação sem estado e armazenamento seguro de senhas. |
-| Testes | Vitest e Supertest | Testes unitários, de componentes e integração com a API e o banco. |
-| Deploy | Docker, Docker Compose e Nginx | Ambiente reproduzível com frontend, backend e banco em contêineres. |
+- Login administrativo.
+- Dashboard com dados reais da API.
+- Formulários reativos para tutores, pets e reservas.
+- Listagens e ações administrativas.
+- Tela financeira.
+- Mensagens de carregamento, sucesso e erro.
+- Layout responsivo inspirado no protótipo do PetzIn.
 
-## Arquitetura
+## Tecnologias e motivos das escolhas
+
+Angular 21 Frontend Escolhi o Angular porque facilita a organização das telas e dos componentes, além de oferecer recursos que ajudam no desenvolvimento e na manutenção da aplicação.
+
+TypeScript Frontend e backend Utilizei TypeScript para ter mais segurança ao escrever o código, identificar possíveis erros durante o desenvolvimento e facilitar a manutenção.
+
+Node.js Backend Optei pelo Node.js por já ter familiaridade com a tecnologia e pela facilidade de trabalhar com TypeScript também no backend.
+
+Express 5 API HTTP Escolhi o Express por ser um framework simples e prático para criar as rotas da API e organizar as requisições do sistema.
+
+PostgreSQL 17 Banco de dados Utilizei PostgreSQL por ser um banco de dados confiável, que permite organizar as informações e manter os relacionamentos entre as tabelas.
+
+TypeORM Persistência de dados Escolhi o TypeORM para facilitar a comunicação entre o backend e o banco de dados, trabalhando com entidades e migrations.
+
+JWT Autenticação Utilizei JWT para controlar a autenticação dos usuários e garantir que apenas pessoas autenticadas possam acessar as rotas protegidas.
+
+bcrypt Segurança das senhas Escolhi bcrypt para proteger as senhas dos usuários, armazenando hashes em vez das senhas originais.
+
+Vitest Testes Utilizei Vitest para criar testes automatizados e verificar se as funcionalidades estão funcionando conforme o esperado.
+
+Supertest Testes da API Escolhi Supertest para testar as rotas da API e conferir se as requisições estão retornando as respostas corretas.
+
+Docker Compose Execução e deploy Utilizei Docker Compose para facilitar a configuração e a execução dos serviços da aplicação, evitando precisar iniciar cada um manualmente.
+
+Nginx Servidor do frontend Escolhi Nginx para disponibilizar os arquivos do frontend e direcionar as requisições da API para o backend.
+
+Não foi adicionada uma biblioteca visual extensa. O CSS do projeto é próprio.
+
+## Arquitetura da aplicação
 
 ```text
 Navegador
-   │
-   ▼
-Angular servido pelo Nginx — http://localhost:8080
-   │  /api
-   ▼
-API REST Node.js + Express — backend:3000
-   │
-   ▼
-Services → Repositories → TypeORM
-   │
-   ▼
-PostgreSQL — postgres:5432
+    |
+    | http://localhost:8080
+    v
+Frontend Angular servido pelo Nginx
+    |
+    | /api
+    v
+Backend Node.js + Express
+    |
+    v
+Routes -> Controllers -> Services -> Repositories
+    |
+    v
+TypeORM -> PostgreSQL
 ```
 
-O backend segue a separação `Routes → Controllers → Services → Repositories → Entities`. As regras de negócio permanecem nos serviços, enquanto controllers tratam requisições e respostas HTTP.
+Responsabilidades no backend:
+
+- **Routes:** definem os endpoints e aplicam o middleware de autenticação.
+- **Controllers:** recebem as requisições e constroem as respostas HTTP.
+- **Services:** concentram validações, regras de negócio e cálculos.
+- **Repositories:** executam consultas e operações de persistência.
+- **Entities:** representam as tabelas e seus relacionamentos.
+- **Migrations:** versionam e reproduzem o schema do banco.
+- **Middlewares:** validam o JWT e padronizam erros transversais.
+
+Responsabilidades no frontend:
+
+- **Core:** modelos, serviços HTTP, interceptor e guard de autenticação.
+- **Features:** páginas agrupadas por funcionalidade.
+- **Layout:** estrutura administrativa e navegação lateral.
+- **Reactive Forms:** validações e envio seguro dos formulários.
 
 ## Documentação da análise
 
-### Problemas do modelo inicial
+### Modelo recebido no desafio
 
-O rascunho apresentado no desafio armazenava dados do tutor, de vários pets e da hospedagem em um único registro de reserva. Embora simples para uma planilha, esse formato não preserva corretamente a identidade e o histórico das entidades.
+O modelo inicial colocava informações do tutor, dos pets e da reserva em um único objeto:
 
-| Problema identificado | Consequência | Solução adotada |
-| --- | --- | --- |
-| Nome e telefone do tutor repetidos em cada reserva | Uma alteração de telefone exigiria atualizar várias linhas e poderia gerar versões conflitantes do mesmo tutor. | Entidade `Tutor` própria, referenciada pelos pets. |
-| Vários pets concatenados em `nome_do_pet` | Não é possível identificar, editar ou consultar o histórico de cada animal individualmente. | Uma entidade `Pet` por animal e uma reserva individual por pet. |
-| Raças concatenadas em `raca_do_pet` | A associação entre nome e raça depende da posição no texto e não possui integridade. | A raça pertence diretamente ao registro do pet correspondente. |
-| Dados do tutor e do pet gravados como cópias na reserva | Duplicação, desperdício e risco de divergência cadastral. | Relacionamentos por chaves estrangeiras. |
-| Apenas `valor_total_pago` | Não diferencia valor calculado, valor recebido, saldo e situação do pagamento. | `valorTotal`, `valorPago`, `statusPagamento` e `pagoEm`. |
-| Ausência de status da hospedagem | Não permite distinguir reserva agendada, em andamento, concluída ou cancelada. | Status controlado e transições validadas pelo backend. |
-| Ausência de regras contra sobreposição | O mesmo pet ou canil poderia receber reservas simultâneas. | Verificação de conflito antes de cadastrar ou editar uma reserva. |
-| Datas sem horário e fuso explícitos | Impede cobrança por hora e pode produzir interpretações diferentes entre sistemas. | API utiliza data e hora ISO 8601 com fuso; o frontend converte os campos antes do envio. |
-
-Se Carlos alterar o telefone, somente o registro do tutor será atualizado. Todas as consultas futuras apresentarão o novo número sem modificar as reservas existentes. Como Rex possui um registro próprio e cada reserva aponta para o seu identificador, o histórico do animal pode ser pesquisado individualmente, sem depender de texto concatenado.
-
-### Modelagem adotada
-
-```text
-Usuario (administração)
-
-Tutor 1 ───── N Pet 1 ───── N Reserva
+```json
+{
+  "id_reserva": 901,
+  "nome_do_dono": "Carlos Almeida",
+  "telefone_dono": "11999999999",
+  "nome_do_pet": "Rex e Bolinha",
+  "raca_do_pet": "Labrador e Poodle",
+  "data_entrada": "2023-11-10",
+  "data_saida": "2023-11-15",
+  "numero_do_canil": 5,
+  "valor_total_pago": 350.0
+}
 ```
 
-No modelo corrigido:
+Esse formato poderia até funcionar como uma linha de planilha, mas não é adequado como modelo relacional para uma aplicação.
 
-- `Usuario` representa exclusivamente a pessoa que administra o hotel.
-- `Tutor` concentra os dados do responsável pelo animal.
-- Cada `Pet` pertence a um único tutor, enquanto um tutor pode possuir vários pets.
-- Cada `Reserva` pertence a um único pet, permitindo histórico e cobrança individuais.
-- Chaves estrangeiras preservam a integridade dos relacionamentos.
-- Desativação lógica preserva os registros e históricos relevantes.
-- Tarifas e valores aplicados são armazenados na reserva para preservar o histórico financeiro.
+### Problemas encontrados
 
-## Regras de cobrança
+Problema identificado & Impacto na aplicação
+Dados do tutor repetidos em várias reservas-Se Carlos mudar de telefone, por exemplo, seria necessário alterar essa informação em todas as reservas dele. Isso aumenta o trabalho e pode gerar informações diferentes para a mesma pessoa.
+Mais de um pet no mesmo campo - Quando armazenamos algo como "Rex e Bolinha" em um único campo, fica difícil consultar ou alterar as informações de cada animal separadamente.
+Raças armazenadas juntas - Como as raças estão no mesmo campo, o sistema depende da ordem dos nomes para saber qual raça pertence a cada pet. Isso pode causar confusão e erros nos registros.
+Falta de identificadores para tutores e pets - Sem um código único para identificar cada tutor e pet, fica mais difícil relacionar corretamente os dados e evitar registros inconsistentes.
+Dados cadastrais misturados com informações da reserva - Misturar informações dos tutores e pets com os dados das reservas gera repetição e dificulta futuras alterações e melhorias no sistema.
+Apenas um campo para o valor pago - Com apenas esse campo, não conseguimos identificar claramente o valor total da hospedagem, quanto já foi pago e se ainda existe algum valor pendente.
+Datas sem horário e fuso horário - Sem essas informações, o sistema pode ter dificuldades para calcular corretamente o período da hospedagem, principalmente quando a cobrança envolve horas ou períodos incompletos.
+Falta de status da reserva - Sem um status, não conseguimos saber facilmente se a reserva está agendada, se o pet já está hospedado, se a hospedagem terminou ou se houve cancelamento.
+Falta de controle de disponibilidade - Sem verificar a disponibilidade antes de confirmar uma reserva, o sistema pode acabar permitindo duas hospedagens para o mesmo canil ou reservas conflitantes para o mesmo pet.
 
-- Hora: **R$ 10,00**.
-- Diária de 24 horas: **R$ 240,00**.
-- Na modalidade por hora, qualquer fração é arredondada para a próxima hora completa.
-- Na modalidade diária, são cobradas as diárias completas e as horas excedentes.
-- Uma permanência de 25 horas e 1 minuto custa **1 diária + 2 horas = R$ 260,00**.
-- O valor é calculado no backend; valores enviados pelo cliente não são aceitos como fonte da cobrança.
+### O que acontece se Carlos mudar de telefone?
 
-## Execução completa com Docker
+No modelo original, cada reserva manteria uma cópia do telefone. Seria necessário localizar e atualizar todas as reservas de Carlos, com risco de deixar registros divergentes.
+
+No PetzIn, o telefone existe somente em `Tutor`. A alteração é feita uma única vez e todas as consultas passam a apresentar o dado atualizado por meio do relacionamento.
+
+### Como consultar Rex individualmente?
+
+No modelo original, Rex divide um campo textual com Bolinha. O banco não consegue identificar com segurança qual trecho pertence a cada animal.
+
+No modelo corrigido, Rex possui um UUID próprio na entidade `Pet`. As reservas apontam para esse identificador, permitindo filtrar todo o histórico de hospedagens do animal. Um futuro registro clínico também deverá referenciar `petId`, mantendo vacinas, alergias ou medicamentos separados por pet. O módulo clínico detalhado não faz parte do núcleo implementado nesta entrega.
+
+### Modelo corrigido
+
+```text
+Usuario
+  - representa a administradora do sistema
+
+Tutor 1 -------- N Pet 1 -------- N Reserva
+```
+
+Principais entidades:
+
+| Entidade | Responsabilidade | Dados principais
+
+| `Usuario` | Acesso administrativo | nome, e-mail, hash da senha e situação do acesso. |
+| `Tutor` | Responsável pelo animal | nome, telefone, e-mail e observações. |
+| `Pet` | Identidade individual do animal | tutor, nome, espécie, raça, sexo, nascimento, peso, foto e observações. |
+| `Reserva` | Hospedagem individual | pet, entrada, saída, canil, modalidade, tarifas, valores, pagamento e status. |
+
+Decisões de integridade:
+
+- Cada pet possui exatamente um tutor nesta versão.
+- Um tutor pode possuir vários pets.
+- Cada reserva pertence a apenas um pet.
+- UUIDs identificam as entidades sem depender de dados pessoais mutáveis.
+- Chaves estrangeiras mantêm os relacionamentos válidos.
+- Valores monetários usam colunas decimais.
+- Reservas guardam as tarifas aplicadas para que mudanças futuras não alterem valores históricos.
+- Tutores e pets são desativados em vez de terem seu histórico apagado.
+- Reservas canceladas permanecem armazenadas, mas não entram nos totais financeiros ativos.
+
+### Regra de cálculo
+
+Na modalidade por hora, a duração é arredondada para cima. Uma permanência de 1 hora e 1 minuto custa 2 horas.
+
+Na modalidade diária, o sistema cobra as diárias completas e depois calcula as horas excedentes, também arredondando a fração. Exemplos:
+
+| Permanência         | Cálculo             | Total     |
+| ------------------- | ------------------- | --------- |
+| 2 horas exatas      | 2 × R$ 10,00        | R$ 20,00  |
+| 2 horas e 1 minuto  | 3 × R$ 10,00        | R$ 30,00  |
+| 24 horas            | 1 × R$ 240,00       | R$ 240,00 |
+| 25 horas e 1 minuto | 1 diária + 2 horas  | R$ 260,00 |
+| 49 horas e 1 minuto | 2 diárias + 2 horas | R$ 500,00 |
+
+O frontend mostra uma prévia, mas o backend recalcula o valor e ignora tentativas do cliente de definir tarifas ou total manualmente.
+
+## Como executar com Docker
+
+Este é o procedimento recomendado para avaliação, pois instala dependências, compila as aplicações, prepara o banco e inicia todo o projeto de forma reproduzível.
 
 ### Pré-requisitos
 
-- Git.
-- Docker Desktop com Docker Compose.
-- Portas `8080`, `3000` e `5433` disponíveis.
+Instale:
 
-### 1. Clone e acesse o projeto
+- [Git](https://git-scm.com/downloads)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+Confirme que o Docker Desktop está aberto e que as portas `8080`, `3000` e `5433` estão livres.
+
+### 1. Clone o repositório
 
 ```bash
-git clone <URL_DO_REPOSITORIO>
+git clone <URL_PUBLICA_DO_REPOSITORIO>
 cd PetzIn
 ```
 
-### 2. Crie o arquivo de ambiente
+Substitua `<URL_PUBLICA_DO_REPOSITORIO>` pela URL publicada no GitHub.
 
-No PowerShell:
+### 2. Crie o arquivo de configuração
+
+No Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
@@ -124,27 +269,54 @@ No Linux ou macOS:
 cp .env.example .env
 ```
 
-Os valores do `.env.example` são destinados somente ao desenvolvimento e à avaliação local. Em produção, substitua senhas e a chave JWT por valores fortes e privados.
+O `.env.example` possui a lista das variáveis exigidas. Os valores de exemplo servem apenas para desenvolvimento local. Não publique o `.env` real.
 
-### 3. Construa e inicie a aplicação
+### 3. Construa e inicie todos os serviços
+
+Na raiz do projeto, execute:
 
 ```bash
 docker compose up --build -d
 ```
 
-O processo aguarda o PostgreSQL, executa automaticamente as migrations, inicia a API e publica o Angular pelo Nginx.
+Não é necessário executar `npm install` neste modo. Os Dockerfiles usam `npm ci` e instalam automaticamente as versões registradas nos arquivos `package-lock.json`.
 
-Verifique os serviços:
+O Compose executará, nesta ordem:
+
+1. PostgreSQL.
+2. Health check do banco.
+3. Backend e migrations.
+4. Health check da API.
+5. Frontend Angular servido pelo Nginx.
+
+### 4. Confirme que os serviços estão saudáveis
 
 ```bash
 docker compose ps
 ```
 
-### 4. Crie o primeiro administrador
+Os serviços `petzin-postgres`, `petzin-backend` e `petzin-frontend` deverão aparecer como `healthy`.
 
-O banco criado pelo Docker começa vazio. A API permite cadastrar somente a primeira conta administrativa e bloqueia tentativas de criar uma segunda conta.
+Também é possível verificar a API pelo navegador:
 
-PowerShell:
+```text
+http://localhost:8080/api/health
+```
+
+Resposta esperada:
+
+```json
+{
+  "status": "ok",
+  "message": "API PetzIn funcionando!"
+}
+```
+
+### 5. Crie a primeira conta administrativa
+
+Um banco novo não possui usuário. A API permite cadastrar a primeira conta administrativa e bloqueia cadastros administrativos adicionais.
+
+Windows PowerShell:
 
 ```powershell
 $corpo = @{
@@ -168,58 +340,76 @@ curl -X POST http://localhost:8080/api/usuarios \
   -d '{"nome":"Administrador PetzIn","email":"admin@petzin.local","senha":"PetzIn@123"}'
 ```
 
-A senha deve ter de 7 a 12 caracteres, contendo ao menos uma letra, um número e um caractere especial. Troque a senha de exemplo após o primeiro acesso.
+A senha deve possuir entre 7 e 12 caracteres, incluindo pelo menos uma letra, um número e um caractere especial.
 
-### 5. Acesse
+### 6. Entre na aplicação
 
-- Aplicação: [http://localhost:8080](http://localhost:8080)
-- Health check pelo proxy: [http://localhost:8080/api/health](http://localhost:8080/api/health)
-- API direta para desenvolvimento: [http://localhost:3000/health](http://localhost:3000/health)
+Acesse:
 
-Para acompanhar os logs:
+```text
+http://localhost:8080
+```
+
+Utilize o e-mail e a senha cadastrados no passo anterior.
+
+### 7. Consulte os logs quando necessário
+
+Todos os serviços:
 
 ```bash
 docker compose logs -f
 ```
 
-Para encerrar sem apagar os dados:
+Somente o backend:
+
+```bash
+docker compose logs -f backend
+```
+
+Pressione `Ctrl+C` para sair da visualização dos logs. Isso não encerra os contêineres.
+
+### 8. Encerre a aplicação
+
+Sem apagar os dados:
 
 ```bash
 docker compose down
 ```
 
-Para reiniciar posteriormente:
+Os registros continuam no volume `postgres_data` e reaparecem na próxima inicialização:
 
 ```bash
 docker compose up -d
 ```
 
-> Atenção: `docker compose down -v` também remove o volume do PostgreSQL e apaga os dados locais.
-
-## Instalação e execução local para desenvolvimento
-
-Esta opção mantém somente o PostgreSQL no Docker. Backend e frontend são executados pelo Node.js com recarregamento automático.
-
-### Pré-requisitos locais
-
-- Git.
-- Node.js 22 ou superior.
-- npm 11 ou superior.
-- Docker Desktop com Docker Compose, utilizado para o PostgreSQL.
-- Portas `4200`, `3000` e `5433` disponíveis.
-
-### 1. Clone o repositório
+Para remover também todos os dados locais:
 
 ```bash
-git clone <URL_DO_REPOSITORIO>
+docker compose down -v
+```
+
+> Atenção: o parâmetro `-v` apaga permanentemente o volume local do PostgreSQL.
+
+## Como executar em modo de desenvolvimento
+
+Neste modo, somente o PostgreSQL fica no Docker. Backend e frontend são executados diretamente pelo Node.js, com atualização automática durante o desenvolvimento.
+
+### Pré-requisitos
+
+- Git.
+- Node.js 22 LTS.
+- npm 11 ou uma versão compatível com o `package-lock.json`.
+- Docker Desktop.
+- Portas `4200`, `3000` e `5433` livres.
+
+### 1. Clone e configure o ambiente
+
+```bash
+git clone <URL_PUBLICA_DO_REPOSITORIO>
 cd PetzIn
 ```
 
-Todos os comandos seguintes consideram que o terminal está inicialmente na raiz `PetzIn`.
-
-### 2. Configure as variáveis de ambiente
-
-PowerShell:
+Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
@@ -231,49 +421,61 @@ Linux ou macOS:
 cp .env.example .env
 ```
 
-O backend procura esse arquivo na raiz do projeto. Não mova o `.env` para dentro de `backend/` e nunca envie esse arquivo ao Git.
+### 2. Inicie o PostgreSQL
 
-### 3. Inicie somente o PostgreSQL
-
-Se a aplicação completa estiver ativa, encerre-a primeiro para evitar conflitos de portas:
+Se o ambiente Docker completo estiver ativo, encerre-o primeiro para liberar as portas:
 
 ```bash
 docker compose down
 ```
 
-Depois inicie apenas o banco:
+Inicie somente o banco:
 
 ```bash
 docker compose up -d postgres
 docker compose ps
 ```
 
-O serviço `petzin-postgres` deverá aparecer como `healthy` e estará acessível localmente pela porta `5433`.
+Aguarde `petzin-postgres` aparecer como `healthy`.
 
-### 4. Instale, prepare e execute o backend
+### 3. Instale as dependências do backend
 
 Abra um terminal na raiz do projeto:
 
 ```bash
 cd backend
 npm ci
+```
+
+`npm ci` instala as versões exatas do `backend/package-lock.json`.
+
+### 4. Execute as migrations
+
+Ainda dentro de `backend/`:
+
+```bash
 npm run migration:run
+```
+
+Na primeira execução, esse comando cria as tabelas. Nas seguintes, aplica somente migrations ainda pendentes.
+
+### 5. Inicie o backend
+
+```bash
 npm run dev
 ```
 
-O comando `npm ci` instala exatamente as versões registradas no `package-lock.json`. Em seguida, as migrations criam ou atualizam as tabelas. Mantenha esse terminal aberto; a API ficará disponível em `http://localhost:3000`.
+Mantenha o terminal aberto. A mensagem esperada informa que o PostgreSQL foi conectado e que a API está na porta `3000`.
 
-Confirme em outro terminal ou no navegador:
+Verifique:
 
 ```text
 http://localhost:3000/health
 ```
 
-A resposta deverá conter `"status":"ok"`.
+### 6. Crie o primeiro administrador
 
-### 5. Crie o primeiro administrador em um banco vazio
-
-Com o backend em execução, abra outro PowerShell na raiz e execute:
+Em outro PowerShell, execute uma única vez para um banco novo:
 
 ```powershell
 $corpo = @{
@@ -289,123 +491,190 @@ Invoke-RestMethod `
   -Body $corpo
 ```
 
-Esse passo é necessário apenas uma vez para cada banco novo. Se a API responder que o administrador já foi cadastrado, utilize a conta criada anteriormente.
+Se a resposta informar que o usuário administrativo já existe, utilize a conta criada anteriormente. Esse bloqueio é intencional porque o sistema foi definido para uma única administradora.
 
-### 6. Instale e execute o frontend
+### 7. Instale as dependências do frontend
 
-Abra um terceiro terminal na raiz do projeto:
+Abra mais um terminal na raiz do projeto:
 
 ```bash
 cd frontend
 npm ci
+```
+
+`npm ci` instala as versões exatas do `frontend/package-lock.json`.
+
+### 8. Inicie o frontend
+
+Ainda dentro de `frontend/`:
+
+```bash
 npm start
 ```
 
-Mantenha o terminal aberto e acesse:
+O Angular ficará disponível em:
 
 ```text
 http://localhost:4200
 ```
 
-O Angular encaminha automaticamente as chamadas `/api` para `http://localhost:3000` por meio de `proxy.conf.json`.
+O arquivo `proxy.conf.json` encaminha chamadas iniciadas por `/api` para o backend em `http://localhost:3000`.
 
-### 7. Entre no sistema
+### 9. Finalize o ambiente local
 
-Use o e-mail e a senha definidos no passo 5. Para encerrar o ambiente local:
-
-1. Pressione `Ctrl+C` nos terminais do frontend e do backend.
-2. Na raiz do projeto, pare o banco sem remover os dados:
+1. Pressione `Ctrl+C` no terminal do frontend.
+2. Pressione `Ctrl+C` no terminal do backend.
+3. Na raiz do projeto, pare o PostgreSQL:
 
 ```bash
 docker compose stop postgres
 ```
 
-### Solução de problemas comuns
+## Como executar os testes
 
-- **Porta já em uso:** encerre processos ou contêineres que estejam utilizando `4200`, `3000` ou `5433`.
-- **Banco não conecta:** execute `docker compose ps` e aguarde o PostgreSQL ficar `healthy`.
-- **Login retorna credenciais inválidas:** confirme que o primeiro administrador foi criado no mesmo banco atualmente em execução.
-- **Alterações de schema não aparecem:** execute novamente `npm run migration:run` dentro de `backend/`.
-- **Deseja recriar o banco:** `docker compose down -v` remove permanentemente os dados locais; depois repita os passos de inicialização e criação do administrador.
+Os testes de integração do backend utilizam o PostgreSQL configurado no `.env`. Antes de executá-los, confirme que o banco está saudável:
 
-## Testes e builds
+```bash
+docker compose up -d postgres
+docker compose ps
+```
 
-O PostgreSQL deve estar ativo para executar os testes de integração do backend.
-
-Backend:
+### Backend
 
 ```bash
 cd backend
+npm ci
 npm run typecheck
 npm test
 npm run build
 ```
 
-Frontend:
+Resultados verificados nesta entrega:
+
+- 7 arquivos de teste.
+- 72 testes aprovados.
+- Fluxo completo testado: login, tutor, pet, reserva, hospedagem, pagamento e persistência.
+
+### Frontend
+
+Em outro terminal, a partir da raiz:
 
 ```bash
 cd frontend
+npm ci
 npm test -- --watch=false
 npm run build
 ```
 
-Estado verificado antes da entrega:
+Resultados verificados nesta entrega:
 
-- **72 testes do backend** aprovados.
-- **19 testes do frontend** aprovados.
-- Builds de produção aprovados.
-- Fluxo integrado validado: login, tutor, pet, reserva, hospedagem e pagamento.
+- 8 arquivos de teste.
+- 19 testes aprovados.
+- Autenticação, guard, formulários, datas e cálculo de reservas cobertos.
 
-## Estrutura do repositório
+## Estrutura do projeto
 
 ```text
 PetzIn/
-├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── entities/
-│   │   ├── middlewares/
-│   │   ├── migrations/
-│   │   ├── repositories/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   └── tests/
-│   └── Dockerfile
-├── frontend/
-│   ├── public/
-│   ├── src/app/
-│   │   ├── core/
-│   │   ├── features/
-│   │   └── layout/
-│   ├── Dockerfile
-│   └── nginx.conf
-├── docs/API.md
-├── compose.yaml
-└── README.md
+|-- backend/
+|   |-- src/
+|   |   |-- controllers/
+|   |   |-- entities/
+|   |   |-- middlewares/
+|   |   |-- migrations/
+|   |   |-- repositories/
+|   |   |-- routes/
+|   |   |-- services/
+|   |   `-- tests/
+|   |-- Dockerfile
+|   |-- package.json
+|   `-- tsconfig.json
+|-- frontend/
+|   |-- public/
+|   |-- src/app/
+|   |   |-- core/
+|   |   |-- features/
+|   |   `-- layout/
+|   |-- Dockerfile
+|   |-- nginx.conf
+|   `-- package.json
+|-- docs/
+|   `-- API.md
+|-- .env.example
+|-- compose.yaml
+`-- README.md
 ```
 
 ## Documentação da API
 
-A documentação completa dos 23 endpoints, incluindo exemplos, filtros, respostas, autenticação e regras de negócio, está em [docs/API.md](docs/API.md).
+A referência completa dos endpoints, exemplos de requisições, respostas, filtros e códigos HTTP está em [docs/API.md](docs/API.md).
 
-## Tratamento de erros
+Resumo dos grupos disponíveis:
 
-A aplicação trata, entre outros casos:
+- `/health`
+- `/usuarios`
+- `/tutores`
+- `/pets`
+- `/reservas`
+- `/financeiro`
 
-- Credenciais ou tokens inválidos.
-- Dados obrigatórios ausentes ou inválidos.
-- E-mails duplicados.
-- IDs inexistentes.
-- Datas passadas ou períodos invertidos.
-- Conflitos de reserva por pet ou canil.
-- Transições inválidas de status.
-- Pagamentos maiores que o valor total.
-- Tentativa de cancelar uma reserva com valor pago.
+Com exceção do health check, do cadastro inicial e do login, os endpoints administrativos exigem o cabeçalho:
 
-## Escopo
+```http
+Authorization: Bearer <token>
+```
 
-O projeto prioriza o núcleo solicitado no desafio: modelagem adequada de tutores, pets e reservas, API REST, interface integrada, tratamento de exceções e Docker. Histórico clínico detalhado e lembretes de medicamentos são evoluções possíveis, mas não fazem parte do fluxo principal desta entrega.
+## Solução de problemas
 
-## Licença
+### Uma porta já está sendo utilizada
 
-Projeto desenvolvido exclusivamente para fins de avaliação técnica.
+Confira se outra execução do Node.js ou outro contêiner está ocupando `4200`, `3000`, `5433` ou `8080`. Encerre a execução anterior antes de iniciar novamente.
+
+### O PostgreSQL não fica saudável
+
+```bash
+docker compose logs postgres
+```
+
+Confirme se o `.env` existe na raiz e possui todas as variáveis listadas em `.env.example`.
+
+### O backend não inicia
+
+```bash
+docker compose logs backend
+```
+
+Verifique a saúde do PostgreSQL e se a variável `JWT_SECRET` foi configurada.
+
+### O login informa credenciais inválidas
+
+Confirme que a primeira conta foi criada no banco atualmente em execução. Volumes Docker diferentes possuem dados independentes.
+
+### O cadastro do administrador retorna HTTP 403
+
+Isso significa que já existe uma conta administrativa. Por segurança, a API não cria uma segunda conta.
+
+### Quero começar com um banco vazio
+
+```bash
+docker compose down -v
+docker compose up --build -d
+```
+
+Depois, repita a criação do primeiro administrador.
+
+> Atenção: esses comandos removem definitivamente todos os dados do banco local.
+
+## Segurança e dados locais
+
+- O arquivo `.env` não é versionado.
+- Senhas nunca são retornadas pela API.
+- O hash bcrypt também não aparece nas respostas.
+- Credenciais inválidas retornam uma mensagem genérica.
+- Tokens expirados ou inválidos retornam HTTP 401.
+- O volume do PostgreSQL não é enviado ao GitHub.
+- Criar um banco novo usando migrations e cadastra sua própria conta administrativa.
+
+## Escopo da entrega
+
+O escopo principal solicitado — modelagem de tutores, pets e reservas, API REST, interface integrada, consumo da API, tratamento de erros e Docker — está implementado. Um módulo clínico detalhado e lembretes de medicamentos são possibilidades de evolução.
