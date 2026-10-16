@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import {
   UsuarioService,
+  ErroAcesso,
   ErroAutenticacao,
   ErroNaoEncontrado,
   ErroValidacao,
@@ -21,6 +22,13 @@ export class UsuarioController {
       // Cadastro realizado com sucesso
       res.status(201).json(usuario);
     } catch (error) {
+      if (error instanceof ErroAcesso) {
+        res.status(403).json({
+          mensagem: error.message,
+        });
+        return;
+      }
+
       // Trata erros de validação
       if (error instanceof ErroValidacao) {
         const status =

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import { obterConfiguracaoJwt } from '../config/autenticacao';
+import { buscarUsuarioPorId } from '../repositories/UsuarioRepository';
 
 declare global {
   namespace Express {
@@ -17,11 +18,11 @@ function responderNaoAutorizado(res: Response): void {
 }
 
 // Valida o token Bearer e disponibiliza o usuário autenticado na requisição.
-export function autenticarToken(
+export async function autenticarToken(
   req: Request,
   res: Response,
   next: NextFunction,
-): void {
+): Promise<void> {
   const cabecalhoAutorizacao = req.headers.authorization;
 
   if (!cabecalhoAutorizacao) {
@@ -55,7 +56,14 @@ export function autenticarToken(
       return;
     }
 
-    req.usuarioId = conteudo.sub;
+    const usuario = await buscarUsuarioPorId(conteudo.sub);
+
+    if (!usuario || !usuario.ativo) {
+      responderNaoAutorizado(res);
+      return;
+    }
+
+    req.usuarioId = usuario.id;
     next();
   } catch (error) {
     if (

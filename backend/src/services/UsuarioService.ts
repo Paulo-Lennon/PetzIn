@@ -30,6 +30,13 @@ export class ErroNaoEncontrado extends Error {
   }
 }
 
+export class ErroAcesso extends Error {
+  constructor(mensagem: string) {
+    super(mensagem);
+    this.name = 'ErroAcesso';
+  }
+}
+
 export class UsuarioService {
   // Verifica se o e-mail já está cadastrado
   async verificarEmail(email: string): Promise<boolean> {
@@ -42,6 +49,12 @@ export class UsuarioService {
 
   // Cadastra um novo usuário
   async cadastrar(nome: string, email: string, senha: string) {
+    const quantidadeUsuarios = await UsuarioRepository.count();
+
+    if (quantidadeUsuarios > 0) {
+      throw new ErroAcesso('O usuário administrativo já foi cadastrado');
+    }
+
     // 1. Valida se os dados foram enviados corretamente
     if (
       typeof nome !== 'string' ||
@@ -126,7 +139,7 @@ export class UsuarioService {
 
     const usuario = await buscarUsuarioPorEmailComSenha(email);
 
-    if (!usuario) {
+    if (!usuario || !usuario.ativo) {
       throw new ErroAutenticacao();
     }
 

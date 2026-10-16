@@ -2,7 +2,11 @@ import 'reflect-metadata';
 import dotenv from 'dotenv';
 import path from 'node:path';
 import { DataSource } from 'typeorm';
+import { Pet } from '../entities/Pet';
+import { Tutor } from '../entities/Tutor';
 import { Usuario } from '../entities/Usuario';
+import { CriarTabelaUsuarios1792092861341 } from '../migrations/1792092861341-CriarTabelaUsuarios';
+import { AdicionarEstruturaPets1792096000000 } from '../migrations/1792096000000-AdicionarEstruturaPets';
 
 dotenv.config({
   path: path.resolve(process.cwd(), '../.env'),
@@ -26,7 +30,10 @@ export const AppDataSource = new DataSource({
 
   logging: false,
 
-  entities: [Usuario],
+  entities: [Usuario, Tutor, Pet],
 
-  migrations: [path.resolve(__dirname, '../migrations/*.{js,ts}')],
+  migrations: [
+    CriarTabelaUsuarios1792092861341,
+    AdicionarEstruturaPets1792096000000,
+  ],
 });
