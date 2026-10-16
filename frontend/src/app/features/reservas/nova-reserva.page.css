@@ -3,6 +3,15 @@
   margin: 0 auto;
 }
 
+.breadcrumb {
+  display: inline-block;
+  margin-bottom: 0.55rem;
+  color: var(--petzin-wine-700);
+  font-size: 0.84rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
 .reservation-form {
   overflow: hidden;
 }
@@ -67,6 +76,45 @@
   padding: 0.8rem;
   color: #8d1524;
   background: #fff0f1;
+}
+
+.period-error {
+  margin: 0 1.5rem 1rem;
+  color: #a51d2d;
+  font-size: 0.85rem;
+}
+
+.field-hint {
+  justify-self: end;
+  color: var(--petzin-muted);
+  font-size: 0.73rem;
+}
+
+.price-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 1.5rem 1.25rem;
+  border: 1px solid #ead9ca;
+  border-radius: var(--petzin-radius-sm);
+  padding: 1rem;
+  background: #fff9f3;
+}
+
+.price-preview div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.price-preview span { font-weight: 750; }
+.price-preview small { color: var(--petzin-muted); }
+.price-preview strong { color: var(--petzin-wine-700); font-size: 1.35rem; }
+
+.form-loading {
+  padding: 3rem;
+  color: var(--petzin-muted);
+  text-align: center;
 }
 
 .form-actions {

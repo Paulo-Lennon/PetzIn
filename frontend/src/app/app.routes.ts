@@ -32,10 +32,42 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'tutores/novo',
+        title: 'Novo tutor | PetzIn',
+        loadComponent: () =>
+          import('./features/tutores/tutor-form.page').then(
+            (modulo) => modulo.TutorFormPage,
+          ),
+      },
+      {
+        path: 'tutores/:id/editar',
+        title: 'Editar tutor | PetzIn',
+        loadComponent: () =>
+          import('./features/tutores/tutor-form.page').then(
+            (modulo) => modulo.TutorFormPage,
+          ),
+      },
+      {
         path: 'pets',
         title: 'Pets | PetzIn',
         loadComponent: () =>
           import('./features/pets/pets.page').then((modulo) => modulo.PetsPage),
+      },
+      {
+        path: 'pets/novo',
+        title: 'Cadastrar pet | PetzIn',
+        loadComponent: () =>
+          import('./features/pets/pet-form.page').then(
+            (modulo) => modulo.PetFormPage,
+          ),
+      },
+      {
+        path: 'pets/:id/editar',
+        title: 'Editar pet | PetzIn',
+        loadComponent: () =>
+          import('./features/pets/pet-form.page').then(
+            (modulo) => modulo.PetFormPage,
+          ),
       },
       {
         path: 'reservas',
@@ -51,6 +83,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/reservas/nova-reserva.page').then(
             (modulo) => modulo.NovaReservaPage,
+          ),
+      },
+      {
+        path: 'reservas/:id/editar',
+        title: 'Editar reserva | PetzIn',
+        loadComponent: () =>
+          import('./features/reservas/nova-reserva.page').then(
+            (modulo) => modulo.NovaReservaPage,
+          ),
+      },
+      {
+        path: 'reservas/:id',
+        title: 'Detalhes da reserva | PetzIn',
+        loadComponent: () =>
+          import('./features/reservas/reserva-detalhes.page').then(
+            (modulo) => modulo.ReservaDetalhesPage,
           ),
       },
       {

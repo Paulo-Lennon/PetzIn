@@ -1,0 +1,58 @@
+<section class="page entity-form-page">
+  <header class="page-header">
+    <div>
+      <a class="breadcrumb" routerLink="/tutores">← Tutores</a>
+      <h1>{{ editando ? 'Editar tutor' : 'Novo tutor' }}</h1>
+      <p>{{ editando ? 'Atualize os dados de contato do responsável.' : 'Cadastre o responsável pelos pets e reservas.' }}</p>
+    </div>
+  </header>
+
+  @if (carregando()) {
+    <section class="surface form-loading">Carregando dados do tutor...</section>
+  } @else {
+    <form class="surface entity-form" [formGroup]="formulario" (ngSubmit)="salvar()">
+      <div class="form-heading">
+        <span class="heading-icon" aria-hidden="true">●</span>
+        <div>
+          <h2>Dados do tutor</h2>
+          <p>Campos marcados com * são obrigatórios.</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field full">
+          <label for="nome">Nome completo *</label>
+          <input id="nome" type="text" maxlength="150" autocomplete="name" formControlName="nome" placeholder="Ex.: Carlos Almeida" />
+          @if (invalido('nome')) { <small class="error-message">Informe o nome completo.</small> }
+        </div>
+
+        <div class="field">
+          <label for="telefone">Telefone *</label>
+          <input id="telefone" type="tel" maxlength="20" autocomplete="tel" formControlName="telefone" placeholder="(92) 99999-9999" />
+          @if (invalido('telefone')) { <small class="error-message">Informe um telefone com 10 a 15 números.</small> }
+        </div>
+
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" maxlength="255" autocomplete="email" formControlName="email" placeholder="cliente@email.com" />
+          @if (invalido('email')) { <small class="error-message">Informe um e-mail válido.</small> }
+        </div>
+
+        <div class="field full">
+          <label for="observacoes">Observações</label>
+          <textarea id="observacoes" rows="5" maxlength="2000" formControlName="observacoes" placeholder="Preferências de contato ou informações importantes"></textarea>
+          <small class="field-hint">{{ formulario.controls.observacoes.value.length }}/2000 caracteres</small>
+        </div>
+      </div>
+
+      @if (erro()) { <div class="form-error" role="alert">{{ erro() }}</div> }
+
+      <div class="form-actions">
+        <a class="button button-secondary" routerLink="/tutores">Cancelar</a>
+        <button class="button button-primary" type="submit" [disabled]="salvando()">
+          {{ salvando() ? 'Salvando...' : editando ? 'Salvar alterações' : 'Cadastrar tutor' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

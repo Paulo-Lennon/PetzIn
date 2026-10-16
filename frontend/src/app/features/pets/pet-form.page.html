@@ -1,0 +1,108 @@
+<section class="page entity-form-page">
+  <header class="page-header">
+    <div>
+      <a class="breadcrumb" routerLink="/pets">← Pets</a>
+      <h1>{{ editando ? 'Editar pet' : 'Cadastro de pet' }}</h1>
+      <p>{{ editando ? 'Atualize as informações e os cuidados do animal.' : 'Adicione as informações do novo hóspede.' }}</p>
+    </div>
+  </header>
+
+  @if (carregando()) {
+    <section class="surface form-loading">Carregando dados do pet...</section>
+  } @else {
+    <form class="surface entity-form pet-form" [formGroup]="formulario" (ngSubmit)="salvar()">
+      <aside class="photo-panel">
+        <div class="photo-preview">
+          @if (fotoValida()) {
+            <img [src]="formulario.controls.fotoUrl.value" alt="Prévia da foto do pet" />
+          } @else {
+            <span aria-hidden="true">🐾</span>
+            <small>Foto do pet</small>
+          }
+        </div>
+        <p>Informe uma URL pública para exibir a foto nas listagens.</p>
+      </aside>
+
+      <div class="form-body">
+        <div class="form-heading">
+          <span class="heading-icon" aria-hidden="true">●</span>
+          <div>
+            <h2>Informações do pet</h2>
+            <p>Campos marcados com * são obrigatórios.</p>
+          </div>
+        </div>
+
+        <div class="form-grid three-columns">
+          <div class="field full">
+            <label for="tutorId">Tutor responsável *</label>
+            <select id="tutorId" formControlName="tutorId">
+              <option value="">Selecione um tutor</option>
+              @for (tutor of tutores(); track tutor.id) { <option [value]="tutor.id">{{ tutor.nome }} · {{ tutor.telefone }}</option> }
+            </select>
+            @if (invalido('tutorId')) { <small class="error-message">Selecione o tutor responsável.</small> }
+            @if (!tutores().length) { <small class="error-message">Cadastre um tutor antes de cadastrar o pet.</small> }
+          </div>
+
+          <div class="field span-2">
+            <label for="nome">Nome do pet *</label>
+            <input id="nome" type="text" maxlength="150" formControlName="nome" placeholder="Ex.: Rex" />
+            @if (invalido('nome')) { <small class="error-message">Informe o nome do pet.</small> }
+          </div>
+
+          <div class="field">
+            <label for="especie">Espécie *</label>
+            <input id="especie" type="text" maxlength="50" list="especies" formControlName="especie" placeholder="Cachorro" />
+            <datalist id="especies"><option value="Cachorro"></option><option value="Gato"></option><option value="Ave"></option><option value="Coelho"></option><option value="Outro"></option></datalist>
+            @if (invalido('especie')) { <small class="error-message">Informe a espécie.</small> }
+          </div>
+
+          <div class="field full">
+            <label for="raca">Raça</label>
+            <input id="raca" type="text" maxlength="100" formControlName="raca" placeholder="Ex.: Labrador" />
+          </div>
+
+          <div class="field">
+            <label for="dataNascimento">Data de nascimento</label>
+            <input id="dataNascimento" type="date" [max]="hoje" formControlName="dataNascimento" />
+          </div>
+
+          <div class="field">
+            <label for="sexo">Sexo</label>
+            <select id="sexo" formControlName="sexo">
+              <option value="NAO_INFORMADO">Não informado</option>
+              <option value="MACHO">Macho</option>
+              <option value="FEMEA">Fêmea</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="pesoAtual">Peso atual (kg)</label>
+            <input id="pesoAtual" type="text" inputmode="decimal" formControlName="pesoAtual" placeholder="28,5" />
+            @if (invalido('pesoAtual')) { <small class="error-message">Use um peso válido com até 2 casas decimais.</small> }
+          </div>
+
+          <div class="field full">
+            <label for="fotoUrl">URL da foto</label>
+            <input id="fotoUrl" type="url" maxlength="500" formControlName="fotoUrl" placeholder="https://exemplo.com/foto-do-pet.jpg" />
+            @if (invalido('fotoUrl')) { <small class="error-message">Informe uma URL iniciada por http:// ou https://.</small> }
+          </div>
+
+          <div class="field full">
+            <label for="observacoes">Observações gerais</label>
+            <textarea id="observacoes" rows="4" maxlength="2000" formControlName="observacoes" placeholder="Comportamento, rotina e preferências do pet"></textarea>
+            <small class="field-hint">{{ formulario.controls.observacoes.value.length }}/2000 caracteres</small>
+          </div>
+        </div>
+
+        @if (erro()) { <div class="form-error" role="alert">{{ erro() }}</div> }
+
+        <div class="form-actions">
+          <a class="button button-secondary" routerLink="/pets">Cancelar</a>
+          <button class="button button-primary" type="submit" [disabled]="salvando() || !tutores().length">
+            {{ salvando() ? 'Salvando...' : editando ? 'Salvar alterações' : 'Salvar pet' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+</section>

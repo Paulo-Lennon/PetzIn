@@ -7,7 +7,15 @@
     <a class="button button-primary new-reservation" routerLink="/reservas/nova">+ Nova reserva</a>
   </header>
 
-  <section class="surface table-wrap">
+  <section class="surface reservations-panel">
+    <div class="status-filters" aria-label="Filtrar reservas por status">
+      <button type="button" [class.active]="filtroStatus() === 'TODAS'" (click)="filtrar('TODAS')">Todas</button>
+      <button type="button" [class.active]="filtroStatus() === 'AGENDADA'" (click)="filtrar('AGENDADA')">Agendadas</button>
+      <button type="button" [class.active]="filtroStatus() === 'EM_ANDAMENTO'" (click)="filtrar('EM_ANDAMENTO')">Em hospedagem</button>
+      <button type="button" [class.active]="filtroStatus() === 'CONCLUIDA'" (click)="filtrar('CONCLUIDA')">Concluídas</button>
+      <button type="button" [class.active]="filtroStatus() === 'CANCELADA'" (click)="filtrar('CANCELADA')">Canceladas</button>
+    </div>
+    <div class="table-wrap">
     @if (carregando()) {
       <div class="empty-state">Carregando reservas...</div>
     } @else if (erro()) {
@@ -17,7 +25,7 @@
     } @else {
       <table class="data-table">
         <thead>
-          <tr><th>Pet</th><th>Tutor</th><th>Período</th><th>Canil</th><th>Status</th><th>Valor</th></tr>
+          <tr><th>Pet</th><th>Tutor</th><th>Período</th><th>Acomodação</th><th>Status</th><th>Pagamento</th><th>Valor</th><th class="actions-heading">Ações</th></tr>
         </thead>
         <tbody>
           @for (reserva of reservas(); track reserva.id) {
@@ -25,13 +33,23 @@
               <td><strong>{{ reserva.pet?.nome }}</strong></td>
               <td>{{ reserva.pet?.tutor?.nome }}</td>
               <td>{{ reserva.dataEntrada | date: 'dd/MM HH:mm' }} — {{ reserva.dataSaida | date: 'dd/MM HH:mm' }}</td>
-              <td>{{ reserva.numeroCanil }}</td>
-              <td><span [class]="classeStatus(reserva.status)">{{ reserva.status }}</span></td>
+              <td>Canil {{ reserva.numeroCanil }}</td>
+              <td><span [class]="classeStatus(reserva.status)">{{ rotuloStatus(reserva.status) }}</span></td>
+              <td><span [class]="'payment payment-' + reserva.statusPagamento.toLowerCase()">{{ rotuloPagamento(reserva.statusPagamento) }}</span></td>
               <td>{{ reserva.valorTotal | currency: 'BRL' }}</td>
+              <td>
+                <div class="row-actions">
+                  <a class="icon-button" [routerLink]="['/reservas', reserva.id]" title="Ver detalhes" [attr.aria-label]="'Ver reserva de ' + reserva.pet?.nome">◉</a>
+                  @if (reserva.status === 'AGENDADA') {
+                    <a class="icon-button" [routerLink]="['/reservas', reserva.id, 'editar']" title="Editar reserva" [attr.aria-label]="'Editar reserva de ' + reserva.pet?.nome">✎</a>
+                  }
+                </div>
+              </td>
             </tr>
           }
         </tbody>
       </table>
     }
+    </div>
   </section>
 </section>

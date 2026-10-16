@@ -1,11 +1,15 @@
 <section class="page reservation-form-page">
   <header class="page-header">
     <div>
-      <h1>Nova reserva</h1>
-      <p>Selecione o pet, o período e a acomodação.</p>
+      <a class="breadcrumb" routerLink="/reservas">← Reservas</a>
+      <h1>{{ editando ? 'Editar reserva' : 'Nova reserva' }}</h1>
+      <p>{{ editando ? 'Atualize o período e os dados da hospedagem.' : 'Selecione o pet, o período e a acomodação.' }}</p>
     </div>
   </header>
 
+  @if (carregando()) {
+    <section class="surface form-loading">Carregando reserva...</section>
+  } @else {
   <form class="surface reservation-form" [formGroup]="formulario" (ngSubmit)="salvar()">
     <div class="steps" aria-label="Etapas da reserva">
       <span class="active"><b>1</b> Pet</span>
@@ -18,7 +22,7 @@
       <h2>Dados da hospedagem</h2>
       <div class="form-grid">
         <div class="field full">
-          <label for="petId">Pet</label>
+          <label for="petId">Pet *</label>
           <select id="petId" formControlName="petId">
             <option value="">Selecione um pet</option>
             @for (pet of pets(); track pet.id) {
@@ -28,33 +32,52 @@
         </div>
 
         <div class="field">
-          <label for="dataEntrada">Entrada</label>
+          <label for="dataEntrada">Entrada *</label>
           <input id="dataEntrada" type="datetime-local" formControlName="dataEntrada" />
         </div>
 
         <div class="field">
-          <label for="dataSaida">Saída</label>
+          <label for="dataSaida">Saída *</label>
           <input id="dataSaida" type="datetime-local" formControlName="dataSaida" />
         </div>
 
         <div class="field">
-          <label for="numeroCanil">Número do canil</label>
+          <label for="numeroCanil">Número do canil *</label>
           <input id="numeroCanil" type="number" min="1" formControlName="numeroCanil" />
         </div>
 
         <div class="field">
-          <label for="modalidade">Modalidade</label>
+          <label for="modalidade">Modalidade *</label>
           <select id="modalidade" formControlName="modalidade">
-            <option value="DIARIA">Diária · R$ 240,00</option>
-            <option value="HORA">Por hora · R$ 10,00</option>
+            <option value="DIARIA">Diária · {{ tarifaDiaria() | currency: 'BRL' }}</option>
+            <option value="HORA">Por hora · {{ tarifaHora() | currency: 'BRL' }}</option>
           </select>
         </div>
 
         <div class="field full">
           <label for="observacoes">Observações</label>
           <textarea id="observacoes" rows="4" formControlName="observacoes" placeholder="Informações relevantes para a hospedagem"></textarea>
+          <small class="field-hint">{{ formulario.controls.observacoes.value.length }}/2000 caracteres</small>
         </div>
       </div>
+
+      @if (formulario.hasError('periodoInvalido') && (formulario.controls.dataEntrada.touched || formulario.controls.dataSaida.touched)) {
+        <div class="period-error">A saída deve acontecer depois da entrada.</div>
+      }
+
+      @if (previa(); as calculo) {
+        <aside class="price-preview" aria-live="polite">
+          <div>
+            <span>Prévia da hospedagem</span>
+            <small>
+              @if (calculo.diarias) { {{ calculo.diarias }} diária(s) }
+              @if (calculo.diarias && calculo.horas) { + }
+              @if (calculo.horas) { {{ calculo.horas }} hora(s) }
+            </small>
+          </div>
+          <strong>{{ calculo.valorTotal | currency: 'BRL' }}</strong>
+        </aside>
+      }
     </div>
 
     @if (erro()) {
@@ -64,8 +87,9 @@
     <div class="form-actions">
       <a class="button secondary" routerLink="/reservas">Cancelar</a>
       <button class="button button-primary" type="submit" [disabled]="salvando() || !pets().length">
-        {{ salvando() ? 'Salvando...' : 'Criar reserva' }}
+        {{ salvando() ? 'Salvando...' : editando ? 'Salvar alterações' : 'Criar reserva' }}
       </button>
     </div>
   </form>
+  }
 </section>

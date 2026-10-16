@@ -64,6 +64,11 @@ a {
   gap: 1.5rem;
 }
 
+.details-page {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+}
+
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -114,6 +119,20 @@ a {
   box-shadow: 0 8px 20px rgb(116 29 43 / 20%);
 }
 
+.button-secondary {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--petzin-border);
+  color: var(--petzin-ink);
+  background: white;
+  text-decoration: none;
+}
+
+.button-danger {
+  color: white;
+  background: #b42332;
+}
+
 .field {
   display: grid;
   gap: 0.4rem;
@@ -142,6 +161,13 @@ a {
 .field textarea:focus {
   border-color: var(--petzin-wine-600);
   box-shadow: 0 0 0 3px rgb(141 36 51 / 10%);
+}
+
+.field input.ng-invalid.ng-touched,
+.field select.ng-invalid.ng-touched,
+.field textarea.ng-invalid.ng-touched {
+  border-color: var(--petzin-red);
+  box-shadow: 0 0 0 3px rgb(227 77 89 / 9%);
 }
 
 .error-message {
