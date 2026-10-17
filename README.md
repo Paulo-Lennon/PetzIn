@@ -795,4 +795,4 @@ Depois, repita a criação do primeiro administrador.
 
 ## Escopo da entrega
 
-O escopo principal solicitado — modelagem de tutores, pets e reservas, API REST, interface integrada, consumo da API, tratamento de erros e Docker — está implementado. Como evolução funcional, o projeto também inclui prontuário clínico, registros de cuidados durante a hospedagem e lembretes de medicamentos.
+O escopo principal solicitado — modelagem de tutores, pets e reservas, API REST, interface integrada, consumo da API, tratamento de erros e Docker — está implementado. Como proposta de melhoria funcional, o projeto também inclui prontuário clínico, registros de cuidados durante a hospedagem e lembretes de medicamentos, funcionalidades estas que podem auxiliar a dona do Hotel no cotidiano.
