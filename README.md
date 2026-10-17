@@ -5,14 +5,15 @@ Sistema web para administração de um hotel e creche de animais. A aplicação 
 ## Sumário
 
 1. [O que foi implementado](#o-que-foi-implementado)
-2. [Tecnologias e motivos das escolhas](#tecnologias-e-motivos-das-escolhas)
-3. [Arquitetura da aplicação](#arquitetura-da-aplicação)
-4. [Documentação da análise](#documentação-da-análise)
-5. [Como executar com Docker](#como-executar-com-docker)
-6. [Como executar em modo de desenvolvimento](#como-executar-em-modo-de-desenvolvimento)
-7. [Como executar os testes](#como-executar-os-testes)
-8. [Documentação da API](#documentação-da-api)
-9. [Solução de problemas](#solução-de-problemas)
+2. [Como usar os módulos de cuidados e medicamentos](#como-usar-os-módulos-de-cuidados-e-medicamentos)
+3. [Tecnologias e motivos das escolhas](#tecnologias-e-motivos-das-escolhas)
+4. [Arquitetura da aplicação](#arquitetura-da-aplicação)
+5. [Documentação da análise](#documentação-da-análise)
+6. [Como executar com Docker](#como-executar-com-docker)
+7. [Como executar em modo de desenvolvimento](#como-executar-em-modo-de-desenvolvimento)
+8. [Como executar os testes](#como-executar-os-testes)
+9. [Documentação da API](#documentação-da-api)
+10. [Solução de problemas](#solução-de-problemas)
 
 ## O que foi implementado
 
@@ -54,6 +55,17 @@ Sistema web para administração de um hotel e creche de animais. A aplicação 
 - Bloqueio de sobreposição para o mesmo canil.
 - Cancelamento com preservação do registro histórico.
 
+### Cuidados clínicos e medicamentos
+
+- Ficha clínica permanente e individual para cada pet.
+- Registro de vacinação, alergias, condições clínicas, restrições alimentares e contato veterinário.
+- Histórico de alimentação, hidratação, sinais vitais, comportamento, higiene, atividades e ocorrências durante a hospedagem.
+- Registros de temperatura e peso associados à reserva em andamento.
+- Lembretes de medicamentos vinculados ao período da reserva.
+- Controle de doses administradas, não administradas e canceladas.
+- Bloqueio da conclusão da hospedagem enquanto houver doses pendentes.
+- Acesso aos lembretes pelo sino da barra superior.
+
 ### Cobrança e financeiro
 
 - Cálculo automático por hora ou diária.
@@ -75,11 +87,103 @@ Sistema web para administração de um hotel e creche de animais. A aplicação 
 - Mensagens de carregamento, sucesso e erro.
 - Layout responsivo inspirado no protótipo do PetzIn.
 
+## Como usar os módulos de cuidados e medicamentos
+
+Os módulos de **Cuidados da Hospedagem** e **Medicamentos** auxiliam a proprietária no acompanhamento da rotina do pet durante sua permanência no hotel. As informações ficam vinculadas ao pet e à reserva em que foram registradas, formando um histórico individual e rastreável.
+
+### Prontuário clínico do pet
+
+O prontuário reúne informações permanentes que devem ser consultadas antes e durante cada hospedagem.
+
+Para acessá-lo:
+
+1. Abra a opção **Pets** na barra lateral e clique no botão de prontuário do animal; ou
+2. Abra **Clientes (Tutores)** e clique no nome do pet exibido na coluna **Pets**.
+
+Na ficha de saúde devem ser informados:
+
+- Situação das vacinas.
+- Alergias.
+- Condições clínicas.
+- Restrições alimentares.
+- Nome e telefone do veterinário responsável.
+- Outras orientações relevantes.
+
+Todos os campos são obrigatórios. Quando não existir informação a declarar em um campo textual, deve ser preenchido `N/A`. O telefone do veterinário aceita um número válido ou `N/A`. Ao tentar salvar uma ficha incompleta, a interface apresenta a orientação logo abaixo do botão **Salvar ficha clínica**.
+
+Na mesma tela é exibido o histórico de cuidados do pet, em ordem do registro mais recente para o mais antigo. Cada item informa a hospedagem em que o cuidado ocorreu e permite abrir seus detalhes.
+
+### Cuidados da hospedagem
+
+Essa tela registra o que aconteceu com o pet durante uma reserva específica.
+
+Para acessá-la:
+
+1. Abra **Reservas**.
+2. Entre nos detalhes da reserva desejada.
+3. Clique em **Cuidados clínicos**.
+
+Um registro de cuidado possui:
+
+- Tipo: alimentação, hidratação, sinais vitais, comportamento, higiene, atividade, ocorrência ou observação.
+- Data e hora do acontecimento.
+- Descrição obrigatória.
+- Temperatura e peso opcionais.
+
+Regras aplicadas:
+
+- O cuidado somente pode ser registrado quando a reserva estiver `EM_ANDAMENTO`.
+- A data e a hora devem estar dentro do período de entrada e saída da reserva.
+- A temperatura, quando informada, deve estar entre 30 e 45 °C e possuir no máximo uma casa decimal.
+- O peso, quando informado, deve ser positivo e possuir no máximo duas casas decimais.
+- O registro fica associado simultaneamente ao pet e à reserva, preservando o histórico clínico individual.
+- A mensagem de sucesso, erro ou preenchimento inválido aparece logo abaixo do botão **Registrar cuidado**.
+
+### Lembretes de medicamentos
+
+Na própria tela **Cuidados da hospedagem**, o formulário **Novo lembrete** permite programar cada dose que deverá ser oferecida ao pet.
+
+Para criar o lembrete, informe:
+
+- Nome do medicamento.
+- Dosagem.
+- Via de administração, quando conhecida.
+- Data e hora programadas.
+- Orientações adicionais, quando necessárias.
+
+Regras aplicadas:
+
+- Lembretes podem ser criados enquanto a reserva estiver `AGENDADA` ou `EM_ANDAMENTO`.
+- O horário programado deve estar dentro do período da reserva.
+- Cada nova dose começa com o status `PENDENTE`.
+- A mensagem de sucesso, erro ou preenchimento inválido aparece logo abaixo do botão **Criar lembrete**.
+- Uma dose pendente pode ser cancelada sem ser apagada do histórico.
+- A administração da dose somente pode ser registrada quando a hospedagem estiver `EM_ANDAMENTO`.
+- Ao clicar em **Administrado**, o sistema registra a dose como administrada e guarda o horário da confirmação.
+- Ao clicar em **Não administrado**, é obrigatório informar o motivo. Essa justificativa permanece no histórico.
+- Um lembrete já administrado, não administrado ou cancelado não pode ser alterado novamente.
+- Ao cancelar uma reserva, todos os seus lembretes ainda pendentes passam automaticamente para `CANCELADO`.
+- Uma hospedagem não pode ser concluída enquanto existir algum lembrete `PENDENTE`. Antes da conclusão, cada dose deve ser marcada como administrada, não administrada ou cancelada.
+
+O sino localizado na barra superior abre a lista geral de doses pendentes, ordenadas por horário. Lembretes cujo horário já passou são destacados como atrasados, e o botão **Abrir cuidados** leva diretamente à hospedagem correspondente.
+
+### Fluxo operacional recomendado
+
+1. Cadastre o tutor e o pet.
+2. Preencha o prontuário clínico do pet.
+3. Crie a reserva da hospedagem.
+4. Programe antecipadamente as doses necessárias.
+5. Inicie a hospedagem alterando a reserva para `EM_ANDAMENTO`.
+6. Registre os cuidados realizados durante a estadia.
+7. Confirme ou justifique cada dose programada.
+8. Verifique pelo sino se ainda existem medicamentos pendentes.
+9. Conclua a hospedagem somente após resolver todos os lembretes.
+
 ## Tecnologias e motivos das escolhas
 
 Angular 21 Frontend Escolhi o Angular porque facilita a organização das telas e dos componentes, além de oferecer recursos que ajudam no desenvolvimento e na manutenção da aplicação.
 
-TypeScript Frontend e backend Utilizei TypeScript para ter mais segurança ao escrever o código, identificar possíveis erros durante o desenvolvimento e facilitar a manutenção.
+TypeScript Frontend e backend Utilizei TypeScript para  identificar possíveis erros durante o desenvolvimento e facilitar a manutenção.
 
 Node.js Backend Optei pelo Node.js por já ter familiaridade com a tecnologia e pela facilidade de trabalhar com TypeScript também no backend.
 
@@ -194,6 +298,13 @@ Usuario
   - representa a administradora do sistema
 
 Tutor 1 -------- N Pet 1 -------- N Reserva
+                    |                  |
+                    1                  N
+                    |                  |
+              FichaClinica      RegistroClinico
+                                       |
+                                       N
+                              LembreteMedicamento
 ```
 
 Principais entidades:
@@ -204,6 +315,9 @@ Principais entidades:
 | `Tutor` | Responsável pelo animal | nome, telefone, e-mail e observações. |
 | `Pet` | Identidade individual do animal | tutor, nome, espécie, raça, sexo, nascimento, peso, foto e observações. |
 | `Reserva` | Hospedagem individual | pet, entrada, saída, canil, modalidade, tarifas, valores, pagamento e status. |
+| `FichaClinica` | Informações permanentes de saúde | vacinação, alergias, condições, restrições e veterinário. |
+| `RegistroClinico` | Cuidado observado durante a estadia | reserva, pet, tipo, horário, descrição, temperatura e peso. |
+| `LembreteMedicamento` | Dose programada durante a estadia | medicamento, dosagem, via, horário, situação e justificativa. |
 
 Decisões de integridade:
 
@@ -216,6 +330,8 @@ Decisões de integridade:
 - Reservas guardam as tarifas aplicadas para que mudanças futuras não alterem valores históricos.
 - Tutores e pets são desativados em vez de terem seu histórico apagado.
 - Reservas canceladas permanecem armazenadas, mas não entram nos totais financeiros ativos.
+- Registros clínicos e doses permanecem vinculados ao pet e à reserva que lhes deram origem.
+- A hospedagem não pode ser concluída enquanto houver medicamento pendente.
 
 ### Regra de cálculo
 
@@ -549,8 +665,8 @@ npm run build
 
 Resultados verificados nesta entrega:
 
-- 7 arquivos de teste.
-- 72 testes aprovados.
+- 8 arquivos de teste.
+- 79 testes aprovados.
 - Fluxo completo testado: login, tutor, pet, reserva, hospedagem, pagamento e persistência.
 
 ### Frontend
@@ -566,8 +682,8 @@ npm run build
 
 Resultados verificados nesta entrega:
 
-- 8 arquivos de teste.
-- 19 testes aprovados.
+- 10 arquivos de teste.
+- 24 testes aprovados.
 - Autenticação, guard, formulários, datas e cálculo de reservas cobertos.
 
 ## Estrutura do projeto
@@ -615,6 +731,10 @@ Resumo dos grupos disponíveis:
 - `/pets`
 - `/reservas`
 - `/financeiro`
+- `/pets/:petId/ficha-clinica`
+- `/pets/:petId/registros-clinicos`
+- `/reservas/:reservaId/lembretes-medicamentos`
+- `/lembretes-medicamentos`
 
 Com exceção do health check, do cadastro inicial e do login, os endpoints administrativos exigem o cabeçalho:
 
@@ -675,4 +795,4 @@ Depois, repita a criação do primeiro administrador.
 
 ## Escopo da entrega
 
-O escopo principal solicitado — modelagem de tutores, pets e reservas, API REST, interface integrada, consumo da API, tratamento de erros e Docker — está implementado. Um módulo clínico detalhado e lembretes de medicamentos são possibilidades de evolução.
+O escopo principal solicitado — modelagem de tutores, pets e reservas, API REST, interface integrada, consumo da API, tratamento de erros e Docker — está implementado. Como evolução funcional, o projeto também inclui prontuário clínico, registros de cuidados durante a hospedagem e lembretes de medicamentos.

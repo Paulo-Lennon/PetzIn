@@ -1,0 +1,50 @@
+<section class="page details-page">
+  <header class="page-header"><div><a class="breadcrumb" [routerLink]="['/reservas', reserva()?.id]">← Reserva</a><h1>Cuidados da hospedagem</h1><p>Registre a rotina clínica e organize os horários de medicamentos.</p></div></header>
+  @if (mensagem()) { <div class="feedback" [class.error]="mensagemDeErro()" role="status">{{ mensagem() }}</div> }
+  @if (carregando()) { <section class="surface empty-state">Carregando cuidados...</section> }
+  @else if (reserva(); as item) {
+    <section class="surface pet-clinical-header"><div class="clinical-avatar">{{ item.pet?.nome?.charAt(0) }}</div><div><small>Hóspede</small><h2>{{ item.pet?.nome }}</h2><p>Canil {{ item.numeroCanil }} · {{ item.dataEntrada | date: 'dd/MM/yyyy, HH:mm' }} até {{ item.dataSaida | date: 'dd/MM/yyyy, HH:mm' }}</p></div><a class="button button-secondary" [routerLink]="['/pets', item.petId, 'prontuario']">Ver prontuário</a></section>
+
+    <div class="care-columns">
+      <form class="surface clinical-form" [formGroup]="registroForm" (ngSubmit)="salvarRegistro()">
+        <div class="section-title"><h2>Novo registro de cuidado</h2><p>Disponível durante a hospedagem.</p></div>
+        <div class="form-grid single">
+          <div class="field"><label for="tipo">Tipo</label><select id="tipo" formControlName="tipo"><option value="ALIMENTACAO">Alimentação</option><option value="HIDRATACAO">Hidratação</option><option value="SINAIS_VITAIS">Sinais vitais</option><option value="COMPORTAMENTO">Comportamento</option><option value="HIGIENE">Higiene</option><option value="ATIVIDADE">Atividade</option><option value="OCORRENCIA">Ocorrência</option><option value="OBSERVACAO">Observação</option></select></div>
+          <div class="field"><label for="dataRegistro">Data e hora</label><input id="dataRegistro" type="datetime-local" formControlName="dataHora" /></div>
+          <div class="field"><label for="temperatura">Temperatura (°C)</label><input id="temperatura" type="number" min="30" max="45" step="0.1" formControlName="temperatura" /></div>
+          <div class="field"><label for="pesoRegistro">Peso (kg)</label><input id="pesoRegistro" type="number" min="0.01" step="0.01" formControlName="peso" /></div>
+          <div class="field span-2"><label for="descricao">Descrição *</label><textarea id="descricao" rows="4" formControlName="descricao"></textarea></div>
+        </div>
+        <button class="button button-primary" type="submit" [disabled]="processando() || item.status !== 'EM_ANDAMENTO'">Registrar cuidado</button>
+        @if (mensagemRegistro()) {
+          <div class="feedback form-feedback" [class.error]="erroRegistro()" role="status">{{ mensagemRegistro() }}</div>
+        }
+      </form>
+
+      <form class="surface clinical-form" [formGroup]="lembreteForm" (ngSubmit)="salvarLembrete()">
+        <div class="section-title"><h2>Novo lembrete</h2><p>O horário deve estar dentro da reserva.</p></div>
+        <div class="form-grid single">
+          <div class="field"><label for="medicamento">Medicamento *</label><input id="medicamento" formControlName="medicamento" /></div>
+          <div class="field"><label for="dosagem">Dosagem *</label><input id="dosagem" formControlName="dosagem" placeholder="Ex.: 1 comprimido" /></div>
+          <div class="field"><label for="via">Via de administração</label><input id="via" formControlName="viaAdministracao" placeholder="Ex.: Oral" /></div>
+          <div class="field"><label for="horario">Horário *</label><input id="horario" type="datetime-local" formControlName="horarioProgramado" /></div>
+          <div class="field span-2"><label for="obsMedicamento">Orientações</label><textarea id="obsMedicamento" rows="3" formControlName="observacoes"></textarea></div>
+        </div>
+        <button class="button button-primary" type="submit" [disabled]="processando() || (item.status !== 'AGENDADA' && item.status !== 'EM_ANDAMENTO')">Criar lembrete</button>
+        @if (mensagemLembrete()) {
+          <div class="feedback form-feedback" [class.error]="erroLembrete()" role="status">{{ mensagemLembrete() }}</div>
+        }
+      </form>
+    </div>
+
+    <section class="surface history-card"><div class="section-title"><h2>Medicamentos programados</h2><p>Doses desta hospedagem.</p></div>
+      @if (!lembretes().length) { <div class="empty-state">Nenhum medicamento programado.</div> }
+      @else { <div class="reminder-list">@for (lembrete of lembretes(); track lembrete.id) { <article class="reminder-item"><div><time>{{ lembrete.horarioProgramado | date: 'dd/MM, HH:mm' }}</time><strong>{{ lembrete.medicamento }} · {{ lembrete.dosagem }}</strong><small>{{ lembrete.viaAdministracao || 'Via não informada' }} @if (lembrete.observacoes) { · {{ lembrete.observacoes }} }</small></div><span [class]="'care-status status-' + lembrete.status.toLowerCase()">{{ rotuloStatus(lembrete.status) }}</span>@if (lembrete.status === 'PENDENTE') { <div class="compact-actions"><button type="button" (click)="administrar(lembrete)" [disabled]="processando() || item.status !== 'EM_ANDAMENTO'">Administrado</button><button type="button" (click)="naoAdministrar(lembrete)" [disabled]="processando() || item.status !== 'EM_ANDAMENTO'">Não administrado</button><button class="danger-link" type="button" (click)="cancelar(lembrete)" [disabled]="processando()">Cancelar</button></div> }</article> }</div> }
+    </section>
+
+    <section class="surface history-card"><div class="section-title"><h2>Registros desta hospedagem</h2></div>
+      @if (!registros().length) { <div class="empty-state">Nenhum cuidado registrado.</div> }
+      @else { <div class="timeline">@for (registro of registros(); track registro.id) { <article class="timeline-item"><span class="timeline-dot"></span><div class="timeline-content"><div class="timeline-heading"><strong>{{ registro.tipo.replaceAll('_', ' ') }}</strong><time>{{ registro.dataHora | date: 'dd/MM/yyyy, HH:mm' }}</time></div><p>{{ registro.descricao }}</p>@if (registro.temperatura || registro.peso) { <small>@if (registro.temperatura) { {{ registro.temperatura }} °C } @if (registro.peso) { · {{ registro.peso }} kg }</small> }</div></article> }</div> }
+    </section>
+  }
+</section>

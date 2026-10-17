@@ -212,7 +212,7 @@ Resposta `201`: objeto do tutor cadastrado.
 
 ### `GET /tutores`
 
-Lista somente tutores ativos, ordenados por nome.
+Lista somente tutores ativos, ordenados por nome. Cada tutor inclui seus pets ativos, também ordenados por nome.
 
 Resposta `200`: array de tutores.
 
@@ -322,6 +322,123 @@ Atualiza somente os campos enviados. Aceita todos os campos do cadastro, incluin
 Desativa o pet sem apagar o histórico. Não é possível desativar um pet com reserva `AGENDADA` ou `EM_ANDAMENTO`.
 
 Resposta de sucesso: `204` sem corpo.
+
+## Cuidados clínicos
+
+O prontuário é individual por pet. A ficha reúne informações permanentes de saúde; os registros clínicos documentam acontecimentos de uma hospedagem específica.
+
+### `GET /pets/:petId/ficha-clinica`
+
+Retorna o pet e sua ficha clínica. Enquanto nenhuma ficha tiver sido preenchida, o campo `ficha` será `null`.
+
+### `PUT /pets/:petId/ficha-clinica`
+
+Cria ou atualiza a ficha clínica do pet. É necessário enviar ao menos um campo permitido.
+
+```json
+{
+  "vacinasEmDia": true,
+  "alergias": "Dipirona",
+  "condicoesClinicas": "Displasia leve",
+  "restricoesAlimentares": "Sem frango",
+  "veterinarioNome": "Dra. Marina",
+  "veterinarioTelefone": "(92) 99999-1111",
+  "observacoes": "Evitar exercícios de alto impacto."
+}
+```
+
+Todos os campos são obrigatórios. Quando não houver informação a declarar em um campo textual, envie `N/A`. O campo `vacinasEmDia` deve ser `true` ou `false`. Textos descritivos aceitam até 2.000 caracteres, o nome do veterinário até 150 caracteres e o telefone deve possuir de 10 a 15 dígitos após normalização ou receber `N/A`.
+
+### `GET /pets/:petId/registros-clinicos`
+
+Retorna o histórico do pet em ordem decrescente de data, incluindo a reserva relacionada.
+
+### `POST /reservas/:reservaId/registros-clinicos`
+
+Inclui um cuidado no histórico do pet. A reserva precisa estar `EM_ANDAMENTO`, e o horário deve pertencer ao período da hospedagem.
+
+```json
+{
+  "tipo": "SINAIS_VITAIS",
+  "dataHora": "2030-01-01T09:00:00-04:00",
+  "descricao": "Avaliação de rotina sem alterações.",
+  "temperatura": 38.4,
+  "peso": 12.35
+}
+```
+
+Tipos aceitos:
+
+- `ALIMENTACAO`
+- `HIDRATACAO`
+- `SINAIS_VITAIS`
+- `COMPORTAMENTO`
+- `HIGIENE`
+- `ATIVIDADE`
+- `OCORRENCIA`
+- `OBSERVACAO`
+
+Temperatura e peso são opcionais. Quando informada, a temperatura deve estar entre 30 e 45 °C e possuir no máximo uma casa decimal.
+
+## Lembretes de medicamentos
+
+Cada lembrete representa uma dose programada e pertence a uma reserva e ao respectivo pet.
+
+### `POST /reservas/:reservaId/lembretes-medicamentos`
+
+Cria um lembrete para uma reserva `AGENDADA` ou `EM_ANDAMENTO`. O horário programado deve estar dentro do período da reserva.
+
+```json
+{
+  "medicamento": "Antibiótico",
+  "dosagem": "1 comprimido",
+  "viaAdministracao": "Oral",
+  "horarioProgramado": "2030-01-01T09:00:00-04:00",
+  "observacoes": "Oferecer após a alimentação."
+}
+```
+
+O lembrete é criado com status `PENDENTE`.
+
+### `GET /lembretes-medicamentos`
+
+Lista os lembretes em ordem de horário, incluindo pet e reserva. Aceita os filtros opcionais `reservaId`, `status`, `dataInicio` e `dataFim`.
+
+Status possíveis:
+
+- `PENDENTE`
+- `ADMINISTRADO`
+- `NAO_ADMINISTRADO`
+- `CANCELADO`
+
+### `PATCH /lembretes-medicamentos/:id/status`
+
+Resolve um lembrete pendente durante uma hospedagem em andamento.
+
+Dose administrada:
+
+```json
+{
+  "status": "ADMINISTRADO"
+}
+```
+
+Dose não administrada:
+
+```json
+{
+  "status": "NAO_ADMINISTRADO",
+  "motivoNaoAdministrado": "Tutor solicitou a suspensão."
+}
+```
+
+O motivo é obrigatório quando a dose não for administrada. Lembretes já resolvidos não podem ser alterados.
+
+### `DELETE /lembretes-medicamentos/:id`
+
+Cancela um lembrete pendente sem apagar seu histórico. Retorna `204` em caso de sucesso.
+
+Uma reserva não pode ser concluída enquanto possuir lembretes `PENDENTE`. Ao cancelar uma reserva, seus lembretes ainda pendentes passam automaticamente para `CANCELADO`.
 
 ## Reservas
 
@@ -541,3 +658,6 @@ Sem filtros, o resumo considera todas as reservas existentes.
 7. Atualizar o status durante a hospedagem.
 8. Registrar o total já pago.
 9. Consultar o resumo financeiro.
+10. Preencher a ficha clínica do pet.
+11. Programar os medicamentos da hospedagem.
+12. Durante a estadia, registrar cuidados e resolver cada dose programada.

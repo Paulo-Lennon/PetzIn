@@ -6,6 +6,7 @@ import petRoutes from './routes/petRoutes';
 import reservaRoutes from './routes/reservaRoutes';
 import tutorRoutes from './routes/tutorRoutes';
 import usuarioRoutes from './routes/usuarioRoutes';
+import cuidadosRoutes from './routes/cuidadosRoutes';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(financeiroRoutes);
 app.use(tutorRoutes);
 app.use(petRoutes);
 app.use(reservaRoutes);
+app.use(cuidadosRoutes);
 
 // Rota para verificar o funcionamento da API
 app.get('/health', (_req, res) => {

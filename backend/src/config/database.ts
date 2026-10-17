@@ -6,10 +6,14 @@ import { Pet } from '../entities/Pet';
 import { Reserva } from '../entities/Reserva';
 import { Tutor } from '../entities/Tutor';
 import { Usuario } from '../entities/Usuario';
+import { FichaClinica } from '../entities/FichaClinica';
+import { LembreteMedicamento } from '../entities/LembreteMedicamento';
+import { RegistroClinico } from '../entities/RegistroClinico';
 import { CriarTabelaUsuarios1792092861341 } from '../migrations/1792092861341-CriarTabelaUsuarios';
 import { AdicionarEstruturaPets1792096000000 } from '../migrations/1792096000000-AdicionarEstruturaPets';
 import { AdicionarReservas1792182400000 } from '../migrations/1792182400000-AdicionarReservas';
 import { AdicionarControleFinanceiro1792186000000 } from '../migrations/1792186000000-AdicionarControleFinanceiro';
+import { AdicionarCuidadosClinicos1792190000000 } from '../migrations/1792190000000-AdicionarCuidadosClinicos';
 
 dotenv.config({
   path: path.resolve(process.cwd(), '../.env'),
@@ -33,12 +37,21 @@ export const AppDataSource = new DataSource({
 
   logging: false,
 
-  entities: [Usuario, Tutor, Pet, Reserva],
+  entities: [
+    Usuario,
+    Tutor,
+    Pet,
+    Reserva,
+    FichaClinica,
+    RegistroClinico,
+    LembreteMedicamento,
+  ],
 
   migrations: [
     CriarTabelaUsuarios1792092861341,
     AdicionarEstruturaPets1792096000000,
     AdicionarReservas1792182400000,
     AdicionarControleFinanceiro1792186000000,
+    AdicionarCuidadosClinicos1792190000000,
   ],
 });

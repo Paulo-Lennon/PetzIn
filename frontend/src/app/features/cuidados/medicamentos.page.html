@@ -1,0 +1,9 @@
+<section class="page">
+  <header class="page-header"><div><h1>Lembretes de medicamentos</h1><p>Doses pendentes organizadas por horário.</p></div></header>
+  <section class="surface history-card">
+    @if (carregando()) { <div class="empty-state">Carregando lembretes...</div> }
+    @else if (erro()) { <div class="empty-state">Não foi possível carregar os lembretes.</div> }
+    @else if (!lembretes().length) { <div class="empty-state success-empty">Não existem doses pendentes.</div> }
+    @else { <div class="reminder-list">@for (lembrete of lembretes(); track lembrete.id) { <article class="reminder-item" [class.overdue]="atrasado(lembrete)"><div><time>{{ lembrete.horarioProgramado | date: 'dd/MM/yyyy, HH:mm' }}</time><strong>{{ lembrete.pet?.nome }} · {{ lembrete.medicamento }}</strong><small>{{ lembrete.dosagem }} · {{ lembrete.viaAdministracao || 'Via não informada' }}</small></div><span class="care-status status-pendente">{{ atrasado(lembrete) ? 'Atrasado' : 'Pendente' }}</span><a class="button button-secondary" [routerLink]="['/reservas', lembrete.reservaId, 'cuidados']">Abrir cuidados</a></article> }</div> }
+  </section>
+</section>

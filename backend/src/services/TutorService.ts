@@ -126,10 +126,17 @@ export class TutorService {
   }
 
   async listar() {
-    return TutorRepository.find({
-      where: { ativo: true },
-      order: { nome: 'ASC' },
-    });
+    return TutorRepository.createQueryBuilder('tutor')
+      .leftJoinAndSelect(
+        'tutor.pets',
+        'pet',
+        'pet.ativo = :petAtivo',
+        { petAtivo: true },
+      )
+      .where('tutor.ativo = :tutorAtivo', { tutorAtivo: true })
+      .orderBy('tutor.nome', 'ASC')
+      .addOrderBy('pet.nome', 'ASC')
+      .getMany();
   }
 
   async buscarPorId(idInformado: unknown) {

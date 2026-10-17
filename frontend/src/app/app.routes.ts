@@ -70,6 +70,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'pets/:id/prontuario',
+        title: 'Prontuário clínico | PetzIn',
+        loadComponent: () =>
+          import('./features/cuidados/prontuario.page').then(
+            (modulo) => modulo.ProntuarioPage,
+          ),
+      },
+      {
         path: 'reservas',
         title: 'Reservas | PetzIn',
         loadComponent: () =>
@@ -99,6 +107,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/reservas/reserva-detalhes.page').then(
             (modulo) => modulo.ReservaDetalhesPage,
+          ),
+      },
+      {
+        path: 'reservas/:id/cuidados',
+        title: 'Cuidados da hospedagem | PetzIn',
+        loadComponent: () =>
+          import('./features/cuidados/cuidados-reserva.page').then(
+            (modulo) => modulo.CuidadosReservaPage,
+          ),
+      },
+      {
+        path: 'medicamentos',
+        title: 'Lembretes de medicamentos | PetzIn',
+        loadComponent: () =>
+          import('./features/cuidados/medicamentos.page').then(
+            (modulo) => modulo.MedicamentosPage,
           ),
       },
       {
