@@ -5,6 +5,8 @@ import {
 } from '../entities/Reserva';
 import { PetRepository } from '../repositories/PetRepository';
 import { ReservaRepository } from '../repositories/ReservaRepository';
+import { StatusLembreteMedicamento } from '../entities/LembreteMedicamento';
+import { LembreteMedicamentoRepository } from '../repositories/CuidadosRepository';
 
 export const TARIFA_HORA = 10;
 export const TARIFA_DIARIA = 240;
@@ -476,8 +478,36 @@ export class ReservaService {
       );
     }
 
+    if (novoStatus === StatusReserva.CONCLUIDA) {
+      const lembretesPendentes = await LembreteMedicamentoRepository.count({
+        where: {
+          reservaId: reserva.id,
+          status: StatusLembreteMedicamento.PENDENTE,
+        },
+      });
+
+      if (lembretesPendentes > 0) {
+        throw new ErroConflitoReserva(
+          'Resolva os lembretes de medicamentos pendentes antes de concluir a hospedagem',
+        );
+      }
+    }
+
     reserva.status = novoStatus;
-    return ReservaRepository.save(reserva);
+    const reservaSalva = await ReservaRepository.save(reserva);
+
+    if (novoStatus === StatusReserva.CANCELADA) {
+      await LembreteMedicamentoRepository.createQueryBuilder()
+        .update()
+        .set({ status: StatusLembreteMedicamento.CANCELADO })
+        .where('reservaId = :reservaId', { reservaId: reserva.id })
+        .andWhere('status = :status', {
+          status: StatusLembreteMedicamento.PENDENTE,
+        })
+        .execute();
+    }
+
+    return reservaSalva;
   }
 
   async registrarPagamento(idInformado: unknown, valorInformado: unknown) {

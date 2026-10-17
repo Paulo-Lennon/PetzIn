@@ -1,0 +1,43 @@
+.breadcrumb { display: inline-block; margin-bottom: .55rem; color: var(--petzin-wine-700); font-weight: 700; text-decoration: none; }
+.feedback { border: 1px solid #b9e4c5; border-radius: 10px; padding: .85rem 1rem; color: #176b35; background: #effaf2; }
+.feedback.error { border-color: #f1bcc2; color: #9e1e2d; background: #fff3f4; }
+.pet-clinical-header { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; }
+.pet-clinical-header h2, .pet-clinical-header p { margin: .15rem 0; }
+.pet-clinical-header small { color: var(--petzin-muted); }
+.pet-clinical-header .button { margin-left: auto; }
+.clinical-avatar { display: grid; width: 58px; height: 58px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: linear-gradient(135deg, var(--petzin-wine-700), #b96555); font-size: 1.45rem; font-weight: 800; }
+.clinical-form, .history-card { padding: 1.35rem; }
+.section-title { margin-bottom: 1.1rem; }
+.section-title h2, .section-title p { margin: 0; }
+.section-title h2 { font-size: 1.15rem; }
+.section-title p { margin-top: .25rem; color: var(--petzin-muted); font-size: .88rem; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.form-grid.single { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.span-2 { grid-column: 1 / -1; }
+.form-actions { display: flex; justify-content: flex-end; margin-top: 1rem; }
+.form-feedback { margin-top: .75rem; }
+.care-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; align-items: start; }
+.timeline { display: grid; }
+.timeline-item { position: relative; display: grid; grid-template-columns: 22px 1fr; gap: .65rem; padding-bottom: 1rem; }
+.timeline-item:not(:last-child)::before { position: absolute; top: 14px; bottom: 0; left: 5px; width: 2px; content: ''; background: var(--petzin-rose-100); }
+.timeline-dot { z-index: 1; width: 12px; height: 12px; margin-top: 4px; border: 3px solid #fff; border-radius: 50%; background: var(--petzin-wine-600); box-shadow: 0 0 0 2px var(--petzin-rose-100); }
+.timeline-content { min-width: 0; }
+.timeline-heading { display: flex; justify-content: space-between; gap: 1rem; }
+.timeline-heading time, .timeline-content small { color: var(--petzin-muted); font-size: .8rem; }
+.timeline-content p { margin: .35rem 0; }
+.timeline-content a { color: var(--petzin-wine-700); font-size: .82rem; font-weight: 700; }
+.reminder-list { display: grid; gap: .75rem; }
+.reminder-item { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 1rem; border: 1px solid var(--petzin-border); border-radius: 12px; padding: 1rem; }
+.reminder-item.overdue { border-color: #efb2b8; background: #fff8f8; }
+.reminder-item > div:first-child { display: grid; gap: .2rem; }
+.reminder-item time, .reminder-item small { color: var(--petzin-muted); font-size: .8rem; }
+.care-status { border-radius: 999px; padding: .35rem .65rem; font-size: .72rem; font-weight: 800; white-space: nowrap; }
+.status-pendente { color: #8b6200; background: #fff2c7; }
+.status-administrado { color: #176b35; background: #dff5e5; }
+.status-nao_administrado, .status-cancelado { color: #8a2733; background: #f9dfe2; }
+.compact-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .35rem; }
+.compact-actions button { border: 1px solid var(--petzin-border); border-radius: 7px; padding: .4rem .55rem; color: var(--petzin-wine-700); background: white; cursor: pointer; }
+.compact-actions .danger-link { color: var(--petzin-red); }
+.success-empty { color: var(--petzin-green); }
+@media (max-width: 900px) { .care-columns { grid-template-columns: 1fr; } }
+@media (max-width: 680px) { .form-grid, .form-grid.single { grid-template-columns: 1fr; } .span-2 { grid-column: auto; } .pet-clinical-header { align-items: flex-start; flex-wrap: wrap; } .pet-clinical-header .button { width: 100%; margin-left: 0; } .reminder-item { grid-template-columns: 1fr; } .compact-actions { justify-content: flex-start; } .timeline-heading { flex-direction: column; gap: .15rem; } }

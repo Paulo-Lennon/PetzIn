@@ -29,7 +29,17 @@
               <td><strong>{{ tutor.nome }}</strong></td>
               <td>{{ tutor.telefone }}</td>
               <td>{{ tutor.email || 'Não informado' }}</td>
-              <td>{{ tutor.pets?.length ?? '—' }}</td>
+              <td>
+                @if (tutor.pets?.length) {
+                  <div class="pet-list">
+                    @for (pet of tutor.pets; track pet.id) {
+                      <a [routerLink]="['/pets', pet.id, 'prontuario']">{{ pet.nome }}</a>
+                    }
+                  </div>
+                } @else {
+                  <span class="no-pets">Nenhum pet</span>
+                }
+              </td>
               <td>
                 <div class="row-actions">
                   <a class="icon-button" [routerLink]="['/tutores', tutor.id, 'editar']" title="Editar tutor" [attr.aria-label]="'Editar ' + tutor.nome">✎</a>

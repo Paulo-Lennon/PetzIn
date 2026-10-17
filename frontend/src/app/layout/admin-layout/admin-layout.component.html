@@ -53,7 +53,7 @@
       </button>
       <span class="topbar-name">Hotel e Creche para Pets</span>
       <div class="topbar-actions">
-        <button type="button" aria-label="Notificações"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></button>
+        <a class="notification-link" routerLink="/medicamentos" aria-label="Lembretes de medicamentos" title="Lembretes de medicamentos"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></a>
         <span class="avatar small">{{ authService.usuario()?.nome?.charAt(0) || 'P' }}</span>
       </div>
     </header>

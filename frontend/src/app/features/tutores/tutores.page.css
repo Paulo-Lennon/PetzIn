@@ -6,6 +6,10 @@
 .icon-button.danger { color: var(--petzin-red); }
 .feedback { border: 1px solid #b9dfc4; border-radius: var(--petzin-radius-sm); padding: 0.8rem 1rem; color: #196b34; background: #effaf2; }
 .feedback.error { border-color: #f1c4ca; color: #8d1524; background: #fff0f1; }
+.pet-list { display: flex; flex-wrap: wrap; gap: .35rem; }
+.pet-list a { border-radius: 999px; padding: .3rem .6rem; color: var(--petzin-wine-700); background: var(--petzin-rose-100); font-size: .78rem; font-weight: 700; text-decoration: none; }
+.pet-list a:hover { background: #ead0d2; }
+.no-pets { color: var(--petzin-muted); font-size: .85rem; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; background: rgb(35 19 18 / 55%); backdrop-filter: blur(3px); }
 .confirm-dialog { width: min(430px, 100%); border-radius: var(--petzin-radius-md); padding: 1.6rem; background: white; box-shadow: 0 24px 70px rgb(30 13 12 / 30%); text-align: center; }
 .dialog-icon { display: grid; width: 42px; height: 42px; margin: 0 auto 0.8rem; place-items: center; border-radius: 50%; color: #a92330; background: #ffe4e7; font-weight: 900; }

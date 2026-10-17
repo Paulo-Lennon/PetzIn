@@ -149,14 +149,24 @@ describe('API administrativa de tutores', () => {
       }),
     );
 
-    const resposta = await request(app)
-      .get(`/tutores/${tutorId}`)
-      .set('Authorization', `Bearer ${tokenAdministrativo}`);
+    const [resposta, listagem] = await Promise.all([
+      request(app)
+        .get(`/tutores/${tutorId}`)
+        .set('Authorization', `Bearer ${tokenAdministrativo}`),
+      request(app)
+        .get('/tutores')
+        .set('Authorization', `Bearer ${tokenAdministrativo}`),
+    ]);
 
     expect(resposta.status).toBe(200);
     expect(resposta.body.id).toBe(tutorId);
     expect(resposta.body.pets).toHaveLength(1);
     expect(resposta.body.pets[0].id).toBe(pet.id);
+    const tutorListado = listagem.body.find(
+      (tutor: { id: string }) => tutor.id === tutorId,
+    );
+    expect(tutorListado.pets).toHaveLength(1);
+    expect(tutorListado.pets[0]).toMatchObject({ id: pet.id, nome: 'Rex' });
   });
 
   it('diferencia identificador inválido de tutor inexistente', async () => {

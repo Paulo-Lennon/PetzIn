@@ -1,0 +1,60 @@
+<section class="page details-page">
+  <header class="page-header">
+    <div>
+      <a class="breadcrumb" routerLink="/pets">← Pets</a>
+      <h1>Prontuário clínico</h1>
+      <p>Informações permanentes e histórico individual do pet.</p>
+    </div>
+  </header>
+
+  @if (!carregando() && !pet() && mensagem()) {
+    <section class="surface feedback error" role="alert">{{ mensagem() }}</section>
+  }
+
+  @if (carregando()) {
+    <section class="surface empty-state">Carregando prontuário...</section>
+  } @else if (pet(); as item) {
+    <section class="surface pet-clinical-header">
+      <div class="clinical-avatar">{{ item.nome.charAt(0) }}</div>
+      <div><small>Paciente</small><h2>{{ item.nome }}</h2><p>{{ item.especie }} · {{ item.raca || 'Raça não informada' }} · Tutor: {{ item.tutor?.nome }}</p></div>
+    </section>
+
+    <form class="surface clinical-form" [formGroup]="formulario" (ngSubmit)="salvar()">
+      <div class="section-title"><h2>Ficha de saúde</h2><p>Preencha todos os campos. Quando não houver informação a declarar, escreva <strong>N/A</strong>.</p></div>
+      <div class="form-grid">
+        <div class="field"><label for="vacinas">Vacinas em dia *</label><select id="vacinas" formControlName="vacinasEmDia"><option value="">Selecione</option><option value="true">Sim</option><option value="false">Não</option></select></div>
+        <div class="field"><label for="veterinario">Veterinário responsável *</label><input id="veterinario" formControlName="veterinarioNome" maxlength="150" placeholder="Nome ou N/A" /></div>
+        <div class="field"><label for="telefoneVet">Telefone do veterinário *</label><input id="telefoneVet" formControlName="veterinarioTelefone" placeholder="(92) 99999-9999 ou N/A" /></div>
+        <div class="field span-2"><label for="alergias">Alergias *</label><textarea id="alergias" rows="3" formControlName="alergias" placeholder="Descreva ou informe N/A"></textarea></div>
+        <div class="field span-2"><label for="condicoes">Condições clínicas *</label><textarea id="condicoes" rows="3" formControlName="condicoesClinicas" placeholder="Descreva ou informe N/A"></textarea></div>
+        <div class="field span-2"><label for="restricoes">Restrições alimentares *</label><textarea id="restricoes" rows="3" formControlName="restricoesAlimentares" placeholder="Descreva ou informe N/A"></textarea></div>
+        <div class="field span-2"><label for="observacoesClinicas">Outras orientações *</label><textarea id="observacoesClinicas" rows="3" formControlName="observacoes" placeholder="Descreva ou informe N/A"></textarea></div>
+      </div>
+      <div class="form-actions"><button class="button button-primary" type="submit" [disabled]="salvando()">{{ salvando() ? 'Salvando...' : 'Salvar ficha clínica' }}</button></div>
+      @if (mensagem()) {
+        <div class="feedback form-feedback" [class.error]="mensagemDeErro()" role="status">{{ mensagem() }}</div>
+      }
+    </form>
+
+    <section class="surface history-card">
+      <div class="section-title"><h2>Histórico de cuidados</h2><p>Registros realizados durante as hospedagens.</p></div>
+      @if (!registros().length) {
+        <div class="empty-state">Ainda não existem registros clínicos para este pet.</div>
+      } @else {
+        <div class="timeline">
+          @for (registro of registros(); track registro.id) {
+            <article class="timeline-item">
+              <span class="timeline-dot"></span>
+              <div class="timeline-content">
+                <div class="timeline-heading"><strong>{{ rotuloTipo(registro.tipo) }}</strong><time>{{ registro.dataHora | date: 'dd/MM/yyyy, HH:mm' }}</time></div>
+                <p>{{ registro.descricao }}</p>
+                @if (registro.temperatura || registro.peso) { <small>@if (registro.temperatura) { Temperatura: {{ registro.temperatura }} °C } @if (registro.peso) { · Peso: {{ registro.peso }} kg }</small> }
+                <a [routerLink]="['/reservas', registro.reservaId]">Ver hospedagem</a>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</section>

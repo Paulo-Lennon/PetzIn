@@ -6,9 +6,12 @@
       <p>Acompanhe a hospedagem e o pagamento.</p>
     </div>
     @if (reserva(); as item) {
-      @if (item.status === 'AGENDADA') {
-        <a class="button button-secondary" [routerLink]="['/reservas', item.id, 'editar']">Editar reserva</a>
-      }
+      <div class="header-actions">
+        <a class="button button-secondary" [routerLink]="['/reservas', item.id, 'cuidados']">Cuidados clínicos</a>
+        @if (item.status === 'AGENDADA') {
+          <a class="button button-secondary" [routerLink]="['/reservas', item.id, 'editar']">Editar reserva</a>
+        }
+      </div>
     }
   </header>
 

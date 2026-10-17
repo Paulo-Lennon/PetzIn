@@ -42,6 +42,7 @@
               <td>{{ pet.pesoAtual ? pet.pesoAtual + ' kg' : '—' }}</td>
               <td>
                 <div class="row-actions">
+                  <a class="icon-button" [routerLink]="['/pets', pet.id, 'prontuario']" title="Prontuário clínico" [attr.aria-label]="'Abrir prontuário de ' + pet.nome">+</a>
                   <a class="icon-button" [routerLink]="['/pets', pet.id, 'editar']" title="Editar pet" [attr.aria-label]="'Editar ' + pet.nome">✎</a>
                   <button class="icon-button danger" type="button" title="Desativar pet" [attr.aria-label]="'Desativar ' + pet.nome" (click)="solicitarDesativacao(pet)">⊘</button>
                 </div>
